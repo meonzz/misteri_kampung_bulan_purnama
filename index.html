@@ -361,6 +361,18 @@
         </div>
 
         <div class="role-gallery" id="roleGallery"></div>
+
+        <div class="card">
+          <div class="section-title">
+            <div>
+              <h3>Tugas &amp; Skrip Tok Dalang (Moderator)</h3>
+              <p>Baca dahulu supaya bersedia sebelum menjadi moderator. Rujukan ini sama dengan yang dipaparkan dalam Panel Tok Dalang semasa game.</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="toggleHomeScriptBtn">Papar Skrip</button>
+          </div>
+          <div id="homeModeratorScripts" class="hidden"></div>
+        </div>
+
         <p class="footer-note">Data permainan disimpan dalam talian supaya setiap peserta boleh log masuk dari peranti sendiri.</p>
       </section>
 
@@ -400,6 +412,14 @@
               <div>
                 <strong>Game diteruskan selepas Scammer menang</strong>
                 <div class="field-help">Scammer kekal pemenang individu, tetapi kampung dan Harimau masih bermain.</div>
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <div class="check-row">
+              <input type="checkbox" id="personaEnabled" checked />
+              <div>
+                <strong>Aktifkan Persona Gaya Perbualan</strong>
+                <div class="field-help">Setiap pemain menerima satu gaya perbualan rawak (dengan contoh ayat) untuk buatkan perbincangan lebih menarik. Harimau Jadian dan Ketua Harimau mendapat persona khusus.</div>
               </div>
             </div>
           </div>
@@ -503,6 +523,13 @@
           <div class="card hidden" id="roleModeratorCard">
             <p class="muted">Anda dipilih sebagai Tok Dalang. Gunakan PIN yang ditunjukkan di atas untuk membuka Panel Tok Dalang apabila sesi bermula.</p>
             <button class="btn btn-wolf btn-block" id="openModeratorPanelBtn">Buka Panel Tok Dalang</button>
+          </div>
+
+          <div class="card hidden" id="rolePersonaCard">
+            <span class="script-current-label">🎭 Persona Gaya Perbualan Anda</span>
+            <h3 id="rolePersonaName" style="margin:0 0 8px"></h3>
+            <p id="rolePersonaDescription" class="muted" style="margin:0 0 12px"></p>
+            <div class="notice info" id="rolePersonaExample"></div>
           </div>
 
           <div class="card">
@@ -679,6 +706,17 @@
     </div>
   </div>
 
+  <div class="modal" id="personaInfoModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="personaInfoTitle">🎭 Persona</h3>
+        <button class="icon-btn" id="closePersonaInfoBtn" aria-label="Tutup">×</button>
+      </div>
+      <p id="personaInfoDescription" style="line-height:1.6;color:#39443F;margin:0 0 14px"></p>
+      <div class="notice info" id="personaInfoExample"></div>
+    </div>
+  </div>
+
   <div class="modal" id="helpModal" aria-hidden="true">
     <div class="modal-card">
       <div class="modal-head">
@@ -805,6 +843,60 @@
       }
     };
 
+    const GENERAL_PERSONAS = [
+      {name:"Bekas Setiausaha Persatuan", description:"Sentiasa mengingati perkara yang disebut dalam perbincangan sebelumnya dan akan membetulkan kenyataan yang tidak konsisten.", example:"“Semalam awak kata awak percaya Amir. Kenapa hari ini cerita awak berubah?”"},
+      {name:"Pekerja Yang Mahu Balik Awal", description:"Tidak suka perbincangan terlalu panjang dan sentiasa mahu keputusan dibuat dengan cepat.", example:"“Kita dah bincang lama. Pilih seorang dan teruskan.”"},
+      {name:"Pemerhati Bahasa Badan", description:"Kurang berminat dengan isi hujah. Lebih fokus kepada cara pemain duduk, ketawa, mengelak pandangan atau kelihatan gugup.", example:"“Saya tak kisah sangat apa awak cakap. Tapi kenapa awak senyum masa nama Harimau disebut?”"},
+      {name:"Pencatat Tidak Rasmi", description:"Mencatat siapa menuduh siapa, keputusan undian dan perubahan pendirian setiap pemain.", example:"“Untuk rekod, tiga orang yang mempertahankan dia semalam sekarang menuduh dia.”"},
+      {name:"Pencari Konsensus", description:"Tidak mahu membuat keputusan sehingga majoriti pemain mempunyai pendapat yang hampir sama.", example:"“Kita dengar semua orang dahulu. Lepas itu baru kita tentukan calon bersama.”"},
+      {name:"Anti-Majoriti", description:"Secara semula jadi mencurigai keputusan yang terlalu mudah diterima oleh semua orang.", example:"“Kenapa semua orang terlalu cepat bersetuju? Mungkin kita sedang diarahkan.”"},
+      {name:"Penganalisis Risiko", description:"Melihat setiap keputusan berdasarkan risiko paling buruk kepada kampung.", example:"“Kalau dia Orang Kampung, apa kerugian kita? Kalau dia Harimau, apa manfaat kita?”"},
+      {name:"Penjaga Reputasi", description:"Sangat mengambil berat tentang pandangan orang terhadap dirinya dan akan cuba kelihatan konsisten serta boleh dipercayai.", example:"“Saya tak ubah pendirian sebab saya tak mahu orang fikir saya cuba selamatkan diri.”"},
+      {name:"Tukang Uji Cerita", description:"Suka meminta pemain mengulangi cerita dengan susunan atau ayat yang berbeza untuk mencari percanggahan.", example:"“Cuba cerita semula dari awal, tapi kali ini ikut urutan siapa bercakap dahulu.”"},
+      {name:"Pendengar Senyap", description:"Jarang bercakap pada awal perbincangan, tetapi akan memberikan rumusan tajam sebelum undian.", example:"“Saya diam sebab saya nak dengar. Sekarang saya rasa ada dua cerita yang tidak sepadan.”"},
+      {name:"Peguam Tanpa Pelantikan", description:"Akan mempertahankan pemain yang tidak diberi peluang bercakap, walaupun belum tentu mempercayai mereka.", example:"“Beri dia peluang jawab dahulu. Jangan hukum hanya sebab semua orang sedang menyerang.”"},
+      {name:"Pemburu Motif", description:"Tidak hanya bertanya siapa yang menipu, tetapi siapa yang mendapat manfaat daripada sesuatu tuduhan atau undian.", example:"“Siapa paling untung kalau kita singkirkan dia malam ini?”"},
+      {name:"Penguji Kesetiaan", description:"Suka meminta pemain memilih antara dua orang bagi melihat siapa yang mereka sanggup korbankan.", example:"“Kalau pilihan hanya antara Farah dan Hakim, siapa awak akan undi?”"},
+      {name:"Pengurus Masa", description:"Membahagikan perbincangan kepada beberapa bahagian dan menetapkan masa untuk setiap calon.", example:"“Kita beri dua minit untuk bincang Ali, kemudian dua minit untuk bincang Siti.”"},
+      {name:"Penyimpan Maklumat", description:"Mengetahui atau mengesyaki sesuatu tetapi tidak mendedahkannya serta-merta. Menunggu masa yang memberi kesan paling besar.", example:"“Saya ada satu maklumat, tapi saya mahu dengar jawapan dia dahulu.”"},
+      {name:"Pembaca Corak Undian", description:"Menilai pemain berdasarkan siapa yang mereka undi, bukan berdasarkan apa yang mereka katakan.", example:"“Percakapan boleh dibuat-buat. Tapi corak undian tiga pusingan ini lebih jelas.”"},
+      {name:"Pengesah Fakta", description:"Akan meminta pemain membezakan antara fakta, andaian dan perasaan.", example:"“Itu bukti atau sekadar awak rasa dia mencurigakan?”"},
+      {name:"Pencetus Keputusan Sukar", description:"Suka memberikan pilihan yang tidak selesa untuk memaksa pemain menunjukkan pendirian sebenar.", example:"“Awak tak boleh kata kedua-duanya selamat. Pilih seorang yang lebih mencurigakan.”"},
+      {name:"Penilai Perubahan Sikap", description:"Memerhatikan siapa yang menjadi lebih aktif, lebih senyap atau lebih agresif selepas sesuatu kejadian.", example:"“Selepas Amir tersingkir, awak tiba-tiba banyak bercakap. Kenapa?”"},
+      {name:"Perunding Sulit", description:"Suka mengajak seorang pemain bekerjasama secara terbuka dan melihat reaksi pemain lain terhadap pakatan tersebut.", example:"“Saya akan percaya awak untuk satu pusingan. Tapi awak kena sokong siasatan saya.”"},
+      {name:"Penentang Tuduhan Peribadi", description:"Tidak suka hujah berdasarkan hubungan, personaliti sebenar atau populariti di luar permainan.", example:"“Jangan kata dia tak mungkin menipu sebab dia kawan awak. Fokus kepada apa yang berlaku dalam game.”"},
+      {name:"Penguji Keyakinan", description:"Meminta setiap pemain memberikan tahap keyakinan dalam bentuk peratusan.", example:"“Awak kata dia Harimau. Awak yakin 55 peratus atau 95 peratus?”"},
+      {name:"Penjaga Undian Terakhir", description:"Enggan mendedahkan pilihan terlalu awal kerana tidak mahu undiannya mempengaruhi orang lain.", example:"“Saya akan umumkan pilihan selepas semua orang beri pendapat.”"},
+      {name:"Penghubung Maklumat", description:"Menggabungkan kenyataan beberapa pemain menjadi satu teori, walaupun maklumat itu datang daripada pihak berbeza.", example:"“Cerita Aina, undian Daniel dan perubahan pendirian Zaki mungkin berkaitan.”"},
+      {name:"Penyemak Keputusan", description:"Selepas seseorang disingkirkan, dia akan menilai semula siapa yang memulakan tuduhan, siapa yang menyokong dan siapa yang cuba menghentikannya.", example:"“Sekarang kita dah tahu hasilnya. Mari tengok siapa yang paling kuat mengarahkan undian tadi.”"}
+    ];
+
+    const WOLF_PERSONAS = [
+      {name:"Penyokong Saat Akhir", description:"Jarang memulakan tuduhan. Dia menunggu calon yang hampir mendapat majoriti sebelum menyokongnya.", example:"“Saya pada awalnya tak pasti, tapi selepas dengar semua hujah, saya rasa dia memang paling mencurigakan.”"},
+      {name:"Pencipta Pilihan Ketiga", description:"Apabila rakannya hampir diundi, dia memperkenalkan suspek baharu untuk memecahkan undian.", example:"“Kenapa kita hanya fokus kepada mereka berdua? Kita langsung tak bincang tentang Farid.”"},
+      {name:"Pembela Bersyarat", description:"Mempertahankan pemain lain dengan berhati-hati supaya kelihatan adil, tetapi boleh menarik balik sokongan bila perlu.", example:"“Saya bukan kata dia bersih. Cuma bukti terhadap dia masih terlalu lemah.”"},
+      {name:"Pemilik Teori Separuh Betul", description:"Membina teori yang mengandungi beberapa fakta sebenar, kemudian menyelitkan kesimpulan palsu.", example:"“Betul, Amir memang ubah undian. Tetapi saya rasa itu sebab dia bekerjasama dengan Siti.”"},
+      {name:"Pengikut Berprinsip", description:"Sentiasa mendakwa hanya mengikut bukti dan tidak mahu membuat tuduhan tanpa alasan.", example:"“Saya tak akan undi berdasarkan perasaan. Berikan saya satu percanggahan yang jelas.”"},
+      {name:"Pemecah Pakatan", description:"Cuba membuat dua pemain yang saling mempercayai mula mencurigai satu sama lain.", example:"“Awak yakin dia percaya awak? Sebab tadi dia hampir mengundi awak.”"},
+      {name:"Pemain Yang Sengaja Tersilap", description:"Sesekali membuat kesilapan kecil supaya kelihatan seperti pemain biasa yang tidak mengetahui semua perkara.", example:"“Eh, saya ingat dia undi Hakim semalam. Maaf, mungkin saya tersalah ingat.”"},
+      {name:"Penyiasat Palsu", description:"Banyak bertanya dan mencatat supaya kelihatan seperti benar-benar mencari Harimau.", example:"“Semua orang jawab satu soalan: siapa suspek utama kamu dan kenapa?”"},
+      {name:"Penjaga Suasana", description:"Cuba menenangkan pergaduhan dan kelihatan seperti pemain yang mementingkan kumpulan.", example:"“Kita jangan serang peribadi. Kita perlukan maklumat, bukan gaduh.”"},
+      {name:"Pengorbanan Terkawal", description:"Sanggup kelihatan mencurigakan atau menerima undian bagi melindungi Ketua Harimau yang lebih penting.", example:"“Kalau semua memang yakin saya bersalah, undilah saya. Tapi selepas itu periksa siapa yang mengarahkan tuduhan ini.”"}
+    ];
+
+    const ALPHA_PERSONAS = [
+      {name:"Pusat Rujukan Kampung", description:"Menjadi pemain yang sering diminta membuat rumusan dan menentukan arah perbincangan.", example:"“Daripada semua yang kita dengar, ada tiga percanggahan utama yang perlu kita selesaikan.”"},
+      {name:"Pemimpin Tanpa Gelaran", description:"Tidak mengarahkan orang secara terang-terangan, tetapi membentuk soalan supaya pemain lain mengikuti teorinya.", example:"“Saya tak suruh kamu undi sesiapa. Saya cuma mahu tahu kenapa ceritanya berubah.”"},
+      {name:"Sasaran Selamat Pawang", description:"Bermain cukup mencurigakan untuk diperiksa oleh Pawang, kemudian menggunakan keputusan “Orang Kampung” sebagai perlindungan.", example:"“Kalau Pawang betul-betul ragu, periksa saya malam ini.”"},
+      {name:"Pengurus Persepsi", description:"Menentukan siapa yang kelihatan berbahaya, bukan semestinya siapa yang paling banyak bukti terhadapnya.", example:"“Saya bukan kata dia Harimau, tetapi cara dia mengawal perbincangan boleh membahayakan kampung.”"},
+      {name:"Pengorban Rakan", description:"Sanggup menuduh Harimau biasa apabila rakannya sudah sukar diselamatkan untuk membina kepercayaan.", example:"“Saya cuba beri dia peluang, tapi jawapannya memang tidak konsisten. Saya akan undi dia.”"},
+      {name:"Pemilik Memori Terpilih", description:"Mengingati perkara yang membantu teorinya dan berpura-pura tidak pasti tentang perkara yang merugikan kumpulannya.", example:"“Saya ingat dia mempertahankan Amir, tetapi saya tak pasti siapa yang mulakan tuduhan.”"},
+      {name:"Pengesah Pendapat", description:"Membuat pemain merasakan teori mereka sendiri membawa kepada keputusan yang sebenarnya dikehendakinya.", example:"“Teori awak masuk akal. Berdasarkan teori itu, siapa pemain kedua yang paling mencurigakan?”"},
+      {name:"Penyelamat Yang Dipercayai", description:"Sesekali mempertahankan Orang Kampung yang hampir tersingkir supaya mendapat kesetiaan pemain tersebut.", example:"“Saya rasa kita terlalu cepat menyerang dia. Beri dia satu pusingan lagi.”"},
+      {name:"Penentu Tempo", description:"Mempercepatkan undian apabila kumpulannya selamat dan melambatkannya apabila rakannya berada dalam bahaya.", example:"“Kita sudah ada cukup maklumat. Lebih lama kita bincang, lebih banyak kita akan keliru.”"},
+      {name:"Pemain Dua Lapisan", description:"Di permukaan kelihatan neutral dan rasional, tetapi secara halus memastikan suspek sentiasa menjauh daripada kumpulan Harimau.", example:"“Saya belum percaya sesiapa sepenuhnya, tetapi sekarang saya rasa kita patut fokus kepada dua pemain ini dahulu.”"}
+    ];
+
     const roleOrder = ["moderator","mayor","scammer","toyol","seer","doctor","alpha","werewolf","villager"];
     const galleryRoleOrder = [...roleOrder];
     const deviceKey = "kbpDeviceV3";
@@ -891,6 +983,13 @@
       return arr;
     }
 
+    function assignPersonas(pool, count){
+      if(!count || !pool.length) return [];
+      let bag = [];
+      while(bag.length < count) bag = bag.concat(shuffle(pool));
+      return bag.slice(0, count);
+    }
+
     function orderedPlayers(){
       return Object.values(modPlayers).sort((a,b)=>(a.order??0)-(b.order??0));
     }
@@ -946,6 +1045,15 @@
       $("roleInfoExample").classList.toggle("hidden", !def.example);
       $("roleInfoModal").classList.add("open");
       $("roleInfoModal").setAttribute("aria-hidden","false");
+    }
+
+    function showPersonaInfo(persona){
+      if(!persona) return;
+      $("personaInfoTitle").textContent = `🎭 ${persona.name}`;
+      $("personaInfoDescription").textContent = persona.description;
+      $("personaInfoExample").textContent = persona.example;
+      $("personaInfoModal").classList.add("open");
+      $("personaInfoModal").setAttribute("aria-hidden","false");
     }
 
     function renderRoleCountInputs(){
@@ -1071,6 +1179,7 @@
         const pin = $("moderatorPin").value.trim() || "1234";
         const revealDeadRole = $("revealDeadRole").checked;
         const continueAfterScammer = $("continueAfterScammer").checked;
+        const personaEnabled = $("personaEnabled").checked;
 
         currentUser = currentUser || await ensureSignedIn();
         const newGameId = await genUniqueGameId();
@@ -1081,6 +1190,16 @@
         }));
         const moderatorPlayer = playerDocs.find(p => p.role === "moderator");
         const moderatorName = moderatorPlayer?.name || "Tok Dalang";
+
+        const personaMap = {};
+        if(personaEnabled){
+          const generalPlayers = playerDocs.filter(p => !["moderator","werewolf","alpha"].includes(p.role));
+          const wolfPlayers = playerDocs.filter(p => p.role === "werewolf");
+          const alphaPlayers = playerDocs.filter(p => p.role === "alpha");
+          assignPersonas(GENERAL_PERSONAS, generalPlayers.length).forEach((persona,i)=>personaMap[generalPlayers[i].id]=persona);
+          assignPersonas(WOLF_PERSONAS, wolfPlayers.length).forEach((persona,i)=>personaMap[wolfPlayers[i].id]=persona);
+          assignPersonas(ALPHA_PERSONAS, alphaPlayers.length).forEach((persona,i)=>personaMap[alphaPlayers[i].id]=persona);
+        }
 
         const batch = db.batch();
         batch.set(newGameRef, {
@@ -1114,6 +1233,7 @@
             claimedUid: null, alive: true, eliminatedBy: null, won: false
           };
           if(p.role === "moderator") priv.moderatorPin = pin;
+          if(personaMap[p.id]) priv.persona = personaMap[p.id];
           batch.set(newGameRef.collection("players").doc(p.id), priv);
           batch.set(newGameRef.collection("publicPlayers").doc(p.id), {
             name: p.name, claimed: false, order: p.order
@@ -1257,6 +1377,16 @@
         $("hideRoleBtn").classList.add("hidden");
       }
       $("roleModeratorCard").classList.toggle("hidden", myPlayerData.role !== "moderator");
+
+      const persona = myPlayerData.persona;
+      if(persona && roleRevealed){
+        $("rolePersonaName").textContent = persona.name;
+        $("rolePersonaDescription").textContent = persona.description;
+        $("rolePersonaExample").textContent = persona.example;
+        $("rolePersonaCard").classList.remove("hidden");
+      }else{
+        $("rolePersonaCard").classList.add("hidden");
+      }
       showScreen("roleScreen");
     }
 
@@ -1463,7 +1593,7 @@
         {
           title:"1. Pembukaan Permainan",
           text:[
-            `Selamat datang ke Misteri Kampung Bulan Purnama. Saya ${game.moderatorName || "Tok Dalang"}, moderator untuk permainan ini.`,
+            `Selamat datang ke Misteri Kampung Bulan Purnama. Saya ${(game && game.moderatorName) || "Tok Dalang"}, moderator untuk permainan ini.`,
             "Setiap pemain mempunyai watak rahsia. Jangan tunjuk atau beritahu watak anda kepada sesiapa kecuali melalui strategi perbincangan.",
             "Semasa malam, semua pemain mesti menutup mata. Buka mata hanya apabila watak anda dipanggil.",
             "Semasa siang, semua pemain boleh berbincang sebelum membuat undian. Undian Penghulu Kampung bernilai 2 mata.",
@@ -1527,15 +1657,23 @@
       $("currentModeratorScript").innerHTML = scriptLinesToHtml(currentText);
       $("copyCurrentScriptBtn").dataset.copyText = currentText;
 
-      $("fullModeratorScripts").innerHTML = getFullModeratorScriptSections().map((section,index)=>`
+      $("fullModeratorScripts").innerHTML = scriptSectionsHtml(getFullModeratorScriptSections(), true);
+    }
+
+    function scriptSectionsHtml(sections, withCopy){
+      return sections.map((section,index)=>`
         <div class="script-section">
           <div class="script-section-head">
             <h4>${escapeHtml(section.title)}</h4>
-            <button class="btn btn-secondary btn-sm" data-copy-script="${index}">Salin</button>
+            ${withCopy ? `<button class="btn btn-secondary btn-sm" data-copy-script="${index}">Salin</button>` : ""}
           </div>
           ${section.text.split(/\n+/).map(line=>`<p>${escapeHtml(line)}</p>`).join("")}
         </div>
       `).join("");
+    }
+
+    function renderHomeModeratorScripts(){
+      $("homeModeratorScripts").innerHTML = scriptSectionsHtml(getFullModeratorScriptSections(), false);
     }
 
     async function copyTextToClipboard(text,button){
@@ -1610,12 +1748,16 @@
               <div style="min-width:0">
                 <div class="status-name">${escapeHtml(player.name)}</div>
                 <div class="status-role">${escapeHtml(def.name)}${player.originalRole !== player.role ? ` · Asal: ${escapeHtml(roleLabel(player.originalRole))}` : ""}</div>
+                ${player.persona ? `<button class="role-badge" style="margin-top:6px;border:0;cursor:pointer" data-persona-player="${player.id}">🎭 ${escapeHtml(player.persona.name)}</button>` : ""}
               </div>
             </div>
             <span class="tag ${tagClass}">${tagText}</span>
           </div>
         `;
       }).join("");
+      document.querySelectorAll("[data-persona-player]").forEach(btn=>{
+        btn.addEventListener("click",()=>showPersonaInfo(getPlayerObj(btn.dataset.personaPlayer)?.persona));
+      });
     }
 
     function optionList(players, selected="", placeholder="Pilih pemain"){
@@ -2193,11 +2335,25 @@
       $("roleInfoModal").addEventListener("click",e=>{
         if(e.target === $("roleInfoModal")) $("closeRoleInfoBtn").click();
       });
+
+      $("closePersonaInfoBtn").addEventListener("click",()=>{
+        $("personaInfoModal").classList.remove("open");
+        $("personaInfoModal").setAttribute("aria-hidden","true");
+      });
+      $("personaInfoModal").addEventListener("click",e=>{
+        if(e.target === $("personaInfoModal")) $("closePersonaInfoBtn").click();
+      });
+
+      $("toggleHomeScriptBtn").addEventListener("click",()=>{
+        const hidden = $("homeModeratorScripts").classList.toggle("hidden");
+        $("toggleHomeScriptBtn").textContent = hidden ? "Papar Skrip" : "Sembunyikan Skrip";
+      });
     }
 
     async function init(){
       renderRoleGallery();
       renderRoleCountInputs();
+      renderHomeModeratorScripts();
       initEvents();
       setRoleCounts(suggestedCounts(8));
       validateSetup();
