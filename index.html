@@ -56,6 +56,12 @@
     }
     .brand h1{font-size:15px;line-height:1.15;margin:0}
     .brand small{display:block;color:var(--muted);font-weight:600;margin-top:3px}
+    .topbar-right{display:flex;align-items:center;gap:8px}
+    .game-code-pill{
+      display:none;padding:7px 10px;border-radius:999px;background:var(--surface-2);
+      font-size:12px;font-weight:800;letter-spacing:.04em;white-space:nowrap
+    }
+    .game-code-pill.show{display:inline-flex}
     .screen{display:none}
     .screen.active{display:block;animation:fade .25s ease}
     @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -328,7 +334,10 @@
           <small>Custom Werewolf Team Building</small>
         </div>
       </div>
-      <button class="btn btn-ghost btn-sm" id="helpBtn">Cara Main</button>
+      <div class="topbar-right">
+        <span class="game-code-pill" id="topGameCodePill"></span>
+        <button class="btn btn-ghost btn-sm" id="helpBtn">Cara Main</button>
+      </div>
     </header>
 
     <main>
@@ -337,17 +346,21 @@
           <span class="eyebrow">🐺 Permainan Deduksi Sosial</span>
           <h2>Selamatkan kampung sebelum malam terakhir.</h2>
           <p>
-            Permainan satu peranti untuk aktiviti team building. Agihkan watak secara rahsia,
-            jalankan fasa malam, bincang, mengundi dan tentukan siapa yang sedang menyamar.
+            Setiap peserta log masuk dari peranti sendiri untuk melihat watak masing-masing sahaja.
+            Tok Dalang membuka panel penuh dengan PIN untuk menjalankan fasa malam, undian dan keputusan.
           </p>
           <div class="hero-actions">
             <button class="btn btn-primary" id="newGameBtn">Mulakan Game Baru</button>
-            <button class="btn btn-secondary hidden" id="resumeBtn">Sambung Game</button>
+            <button class="btn btn-secondary" id="joinGameBtn">Sertai Game Sedia Ada</button>
           </div>
         </div>
 
+        <div class="card">
+          <button class="btn btn-ghost btn-block" id="moderatorPanelHomeBtn">🎙️ Saya Tok Dalang · Buka Panel dengan PIN</button>
+        </div>
+
         <div class="role-gallery" id="roleGallery"></div>
-        <p class="footer-note">Semua data permainan disimpan dalam peranti ini sahaja.</p>
+        <p class="footer-note">Data permainan disimpan dalam talian supaya setiap peserta boleh log masuk dari peranti sendiri.</p>
       </section>
 
       <section class="screen" id="setupScreen">
@@ -371,7 +384,7 @@
             <div class="field">
               <label for="moderatorPin">PIN Panel Tok Dalang</label>
               <input id="moderatorPin" type="password" inputmode="numeric" maxlength="6" placeholder="Contoh: 1234" />
-              <div class="field-help">Digunakan untuk membuka panel rahsia selepas semua pemain melihat watak.</div>
+              <div class="field-help">Peserta yang mendapat watak Tok Dalang akan diberitahu PIN ini pada peranti mereka sendiri.</div>
             </div>
             <div class="check-row">
               <input type="checkbox" id="revealDeadRole" checked />
@@ -411,12 +424,66 @@
         </div>
       </section>
 
-      <section class="screen" id="revealScreen">
+      <section class="screen" id="gameCreatedScreen">
         <div class="reveal-wrap">
           <div class="card pass-card">
-            <span class="player-pill" id="revealProgress">Pemain 1 daripada 1</span>
-            <h2 id="revealPlayerName">Nama Pemain</h2>
-            <p class="muted" id="revealInstruction">Pastikan hanya pemain ini melihat skrin.</p>
+            <span class="player-pill">Game Berjaya Dicipta</span>
+            <h2 id="gameCodeDisplay">ABC123</h2>
+            <p class="muted">Kongsikan kod atau link ini kepada semua peserta supaya mereka boleh log masuk pada peranti masing-masing.</p>
+          </div>
+          <div class="card">
+            <div class="field" style="margin-bottom:10px">
+              <label for="gameShareLink">Link Untuk Dikongsi</label>
+              <input id="gameShareLink" readonly />
+            </div>
+            <div class="button-row">
+              <button class="btn btn-secondary" id="copyShareLinkBtn">Salin Link</button>
+              <button class="btn btn-secondary" id="copyShareCodeBtn">Salin Kod</button>
+            </div>
+          </div>
+          <div class="card">
+            <button class="btn btn-primary btn-block" id="continueAsPlayerBtn">Teruskan &amp; Pilih Nama Saya</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="joinScreen">
+        <div class="reveal-wrap">
+          <div class="card" id="joinCodeCard">
+            <h2>Sertai Game</h2>
+            <p class="muted">Masukkan kod game yang diberikan oleh penganjur.</p>
+            <div class="field">
+              <label for="joinCodeInput">Kod Game</label>
+              <input id="joinCodeInput" maxlength="8" placeholder="Contoh: 7GQK3M" style="text-transform:uppercase;letter-spacing:3px;font-weight:800;text-align:center" />
+            </div>
+            <button class="btn btn-primary btn-block" id="joinCodeBtn">Cari Game</button>
+            <div id="joinCodeError" class="notice danger hidden" style="margin-top:12px"></div>
+          </div>
+
+          <div class="card hidden" id="joinNameCard">
+            <div class="section-title">
+              <div>
+                <h3>Pilih Nama Anda</h3>
+                <p>Ketik "Ini Saya" di sebelah nama anda untuk log masuk pada peranti ini.</p>
+              </div>
+            </div>
+            <div class="status-list" id="joinNameList"></div>
+            <div id="joinNameError" class="notice danger hidden" style="margin-top:12px"></div>
+          </div>
+
+          <div class="card">
+            <button class="btn btn-ghost btn-block" id="joinModeratorLinkBtn">🎙️ Saya Tok Dalang · Masuk dengan PIN</button>
+            <button class="btn btn-secondary btn-block" id="joinBackHomeBtn" style="margin-top:10px">Kembali ke Halaman Utama</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="roleScreen">
+        <div class="reveal-wrap">
+          <div class="card pass-card">
+            <span class="player-pill" id="roleGameCode">Kod: ABC123</span>
+            <h2 id="rolePlayerName">Nama Pemain</h2>
+            <p class="muted">Watak ini kekal disimpan pada peranti ini sahaja. Jangan tunjuk skrin kepada pemain lain.</p>
           </div>
 
           <div class="secret-card hidden-role" id="secretCard">
@@ -429,7 +496,16 @@
 
           <div class="card">
             <button class="btn btn-primary btn-block" id="revealRoleBtn">Lihat Watak Saya</button>
-            <button class="btn btn-secondary btn-block hidden" id="hideNextBtn">Sembunyikan & Serah Kepada Pemain Seterusnya</button>
+            <button class="btn btn-secondary btn-block hidden" id="hideRoleBtn">Sembunyikan Watak</button>
+          </div>
+
+          <div class="card hidden" id="roleModeratorCard">
+            <p class="muted">Anda dipilih sebagai Tok Dalang. Gunakan PIN yang ditunjukkan di atas untuk membuka Panel Tok Dalang apabila sesi bermula.</p>
+            <button class="btn btn-wolf btn-block" id="openModeratorPanelBtn">Buka Panel Tok Dalang</button>
+          </div>
+
+          <div class="card">
+            <button class="btn btn-ghost btn-block" id="roleBackHomeBtn">Log Keluar Peranti Ini</button>
           </div>
         </div>
       </section>
@@ -439,7 +515,11 @@
           <div class="card" style="text-align:center">
             <div style="font-size:58px">🎙️</div>
             <h2>Panel Tok Dalang</h2>
-            <div class="player-pill" id="moderatorLoginName">Moderator: Tok Dalang</div>
+            <div class="field hidden" id="moderatorGameCodeField" style="text-align:left">
+              <label for="moderatorGameCodeInput">Kod Game</label>
+              <input id="moderatorGameCodeInput" maxlength="8" placeholder="Contoh: 7GQK3M" style="text-transform:uppercase;letter-spacing:3px;font-weight:800;text-align:center" />
+            </div>
+            <div class="player-pill" id="moderatorLoginName">Moderator</div>
             <p class="muted">Masukkan PIN yang ditetapkan semasa setup.</p>
             <div class="pin-display" id="pinDisplay">••••</div>
             <div class="pin-pad" id="pinPad"></div>
@@ -523,7 +603,7 @@
             <div class="field" style="margin-bottom:0">
               <label for="moderatorNotes">Catatan / Skrip Tambahan Moderator</label>
               <textarea id="moderatorNotes" placeholder="Contoh: Ingatkan semua pemain supaya tidak membuka mata sebelum dipanggil..."></textarea>
-              <div class="field-help">Catatan disimpan secara automatik dalam peranti.</div>
+              <div class="field-help">Catatan disimpan secara automatik dalam talian.</div>
             </div>
           </div>
         </section>
@@ -591,20 +671,19 @@
         <button class="icon-btn" id="closeHelpBtn" aria-label="Tutup">×</button>
       </div>
       <div class="notice info">
-        Permainan ini direka untuk satu telefon atau laptop. Pemain melihat watak seorang demi seorang,
-        kemudian peranti diserahkan kepada Tok Dalang.
+        Setiap pemain membuka link permainan pada telefon masing-masing dan log masuk dengan memilih nama sendiri.
+        Tok Dalang membuka panel penuh pada peranti sendiri menggunakan PIN.
       </div>
       <ol style="line-height:1.7;padding-left:22px">
-        <li>Masukkan nama semua peserta, termasuk peserta yang akan menjadi Moderator.</li>
-        <li>Dalam bahagian Jumlah Watak, role Tok Dalang (Moderator) ditetapkan sebanyak seorang.</li>
-        <li>Sistem akan mengagihkan semua role secara rawak dan menentukan siapa Moderator.</li>
-        <li>Setiap pemain melihat watak masing-masing secara rahsia.</li>
-        <li>Tok Dalang masuk menggunakan PIN dan menjalankan fasa malam.</li>
-        <li>Semasa siang, semua pemain berbincang dan mengundi.</li>
-        <li>Penghulu mempunyai undian 2 mata.</li>
-        <li>Scammer menang jika disingkirkan melalui undian.</li>
-        <li>Pawang melihat Ketua Harimau sebagai Orang Kampung.</li>
-        <li>Toyol boleh menukar wataknya dengan sasaran, maksimum 1 kali.</li>
+        <li>Seorang peserta ("penganjur") memasukkan nama semua peserta dan menetapkan PIN Panel Tok Dalang.</li>
+        <li>Sistem mengagihkan watak secara rawak, termasuk menentukan siapa Tok Dalang, dan menghasilkan kod/link game.</li>
+        <li>Kod atau link dikongsi kepada semua peserta melalui WhatsApp atau cara lain.</li>
+        <li>Setiap peserta membuka link tersebut pada peranti sendiri dan memilih nama mereka untuk log masuk.</li>
+        <li>Setiap peserta hanya nampak watak mereka sendiri.</li>
+        <li>Peserta yang mendapat watak Tok Dalang akan diberitahu PIN dan boleh membuka Panel Tok Dalang.</li>
+        <li>Tok Dalang menjalankan fasa malam, mengumumkan pagi dan mengendalikan undian siang.</li>
+        <li>Penghulu mempunyai undian 2 mata. Scammer menang jika disingkirkan melalui undian.</li>
+        <li>Pawang melihat Ketua Harimau sebagai Orang Kampung. Toyol boleh menukar watak sekali sahaja.</li>
         <li>Nurse melindungi seorang pemain dan tidak boleh melindungi sasaran sama dua malam berturut-turut.</li>
       </ol>
     </div>
@@ -620,7 +699,22 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
   <script>
+    const firebaseConfig = {
+      projectId: "misteri-kampung-bulan",
+      appId: "1:588056572688:web:907e2bc9d116dcf9952b95",
+      storageBucket: "misteri-kampung-bulan.firebasestorage.app",
+      apiKey: "AIzaSyBJXL1UsCg9lCw1FDuQEwAd7afyJ0i0aKA",
+      authDomain: "misteri-kampung-bulan.firebaseapp.com",
+      messagingSenderId: "588056572688"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
     const ROLE_DEFS = {
       moderator: {
         name: "Tok Dalang (Moderator)",
@@ -689,83 +783,74 @@
 
     const roleOrder = ["moderator","mayor","scammer","toyol","seer","doctor","alpha","werewolf","villager"];
     const galleryRoleOrder = [...roleOrder];
-    const storageKey = "kampungBulanPurnamaGameV2";
-
-    const defaultState = () => ({
-      version: 1,
-      createdAt: new Date().toISOString(),
-      moderatorName: "Tok Dalang",
-      moderatorPin: "",
-      moderatorNotes: "",
-      lastMorningScript: "",
-      lastVoteScript: "",
-      revealDeadRole: true,
-      continueAfterScammer: true,
-      players: [],
-      revealIndex: 0,
-      revealVisible: false,
-      round: 1,
-      phase: "night",
-      nightResolved: false,
-      voteResolved: false,
-      toyolUses: 0,
-      previousProtectedId: null,
-      currentNight: {
-        wolfTargetId: "",
-        protectedId: "",
-        seerTargetId: "",
-        seerResult: "",
-        toyolTargetId: ""
-      },
-      scammerWinners: [],
-      gameWinner: null,
-      logs: []
-    });
-
-    let state = defaultState();
-    let pinBuffer = "";
+    const deviceKey = "kbpDeviceV3";
 
     const $ = id => document.getElementById(id);
     const screens = [...document.querySelectorAll(".screen")];
 
+    let currentUser = null;
+    let gameId = null;
+    let myPlayerId = null;
+    let myPlayerData = null;
+    let roleRevealed = false;
+    let pinBuffer = "";
+
+    let game = null;
+    let modPlayers = {};
+    let gameUnsub = null;
+    let playersUnsub = null;
+    let myRoleUnsub = null;
+
     function showScreen(id){
       screens.forEach(s => s.classList.toggle("active", s.id === id));
+      $("topGameCodePill").classList.toggle("show", !!gameId && ["roleScreen","moderatorScreen","moderatorLoginScreen"].includes(id));
+      if(gameId) $("topGameCodePill").textContent = `Kod: ${gameId}`;
       window.scrollTo({top:0,behavior:"smooth"});
     }
 
-    function saveState(){
-      localStorage.setItem(storageKey, JSON.stringify(state));
-      updateResumeButton();
+    function saveDevice(data){
+      localStorage.setItem(deviceKey, JSON.stringify(data));
+    }
+    function loadDevice(){
+      try{ return JSON.parse(localStorage.getItem(deviceKey) || "null"); }
+      catch(err){ return null; }
+    }
+    function clearDevice(){ localStorage.removeItem(deviceKey); }
+
+    function genCode(len=6){
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let out = "";
+      for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
+      return out;
+    }
+    function genPlayerId(){
+      return "pl_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,10);
+    }
+    function cryptoId(){
+      return crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random());
     }
 
-    function loadState(){
-      const raw = localStorage.getItem(storageKey);
-      if(!raw) return false;
-      try{
-        state = {...defaultState(), ...JSON.parse(raw)};
-        state.currentNight = {...defaultState().currentNight, ...(state.currentNight || {})};
-        return true;
-      }catch(err){
-        console.error(err);
-        return false;
-      }
-    }
-
-    function updateResumeButton(){
-      $("resumeBtn").classList.toggle("hidden", !localStorage.getItem(storageKey));
-    }
-
-    function addLog(message, type="info"){
-      state.logs.unshift({
-        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random()),
-        at: new Date().toISOString(),
-        round: state.round,
-        phase: state.phase,
-        type,
-        message
+    function ensureSignedIn(){
+      return new Promise((resolve,reject)=>{
+        const unsub = auth.onAuthStateChanged(user=>{
+          unsub();
+          if(user){ resolve(user); return; }
+          auth.signInAnonymously().then(cred=>resolve(cred.user)).catch(reject);
+        }, reject);
       });
-      saveState();
     }
+
+    async function genUniqueGameId(){
+      for(let i=0;i<5;i++){
+        const code = genCode();
+        const snap = await db.collection("games").doc(code).get();
+        if(!snap.exists) return code;
+      }
+      return genCode(8);
+    }
+
+    function gameDocRef(){ return db.collection("games").doc(gameId); }
+    function playerDocRef(id){ return gameDocRef().collection("players").doc(id); }
 
     function escapeHtml(value){
       return String(value ?? "").replace(/[&<>"']/g, ch => ({
@@ -782,35 +867,25 @@
       return arr;
     }
 
+    function orderedPlayers(){
+      return Object.values(modPlayers).sort((a,b)=>(a.order??0)-(b.order??0));
+    }
     function getAlivePlayers(){
-      return state.players.filter(p => p.alive && p.role !== "moderator");
+      return orderedPlayers().filter(p => p.alive && p.role !== "moderator");
     }
-
-    function getModeratorPlayer(){
-      return state.players.find(p => p.role === "moderator") || null;
+    function getPlayerObj(id){
+      return modPlayers[id];
     }
-
-    function getPlayer(id){
-      return state.players.find(p => p.id === id);
-    }
-
-    function getRoleHolders(role){
-      return state.players.filter(p => p.alive && p.role === role && p.role !== "moderator");
-    }
-
     function isWolfRole(role){
       return role === "werewolf" || role === "alpha";
     }
-
     function playerTeam(player){
       if(!player) return "unknown";
       return ROLE_DEFS[player.role]?.team || "unknown";
     }
-
     function roleLabel(role){
       return ROLE_DEFS[role]?.name || role;
     }
-
     function roleIcon(role){
       return ROLE_DEFS[role]?.icon || "❓";
     }
@@ -943,75 +1018,215 @@
       return true;
     }
 
-    function assignRoles(){
+    async function assignRoles(){
       if(!validateSetup()) return;
-      const names = getNames();
-      const counts = getRoleCounts();
-      const roles = [];
-      roleOrder.forEach(role => {
-        for(let i=0;i<counts[role];i++) roles.push(role);
-      });
-      const shuffledRoles = shuffle(roles);
-      const shuffledNames = shuffle(names);
+      $("assignRolesBtn").disabled = true;
+      try{
+        const names = getNames();
+        const counts = getRoleCounts();
+        const roles = [];
+        roleOrder.forEach(role => { for(let i=0;i<counts[role];i++) roles.push(role); });
+        const shuffledRoles = shuffle(roles);
+        const shuffledNames = shuffle(names);
+        const pin = $("moderatorPin").value.trim() || "1234";
+        const revealDeadRole = $("revealDeadRole").checked;
+        const continueAfterScammer = $("continueAfterScammer").checked;
 
-      state = defaultState();
-      state.moderatorPin = $("moderatorPin").value.trim() || "1234";
-      state.revealDeadRole = $("revealDeadRole").checked;
-      state.continueAfterScammer = $("continueAfterScammer").checked;
-      state.players = shuffledNames.map((name,index)=>({
-        id: `p_${Date.now()}_${index}_${Math.random().toString(36).slice(2,7)}`,
-        name,
-        role: shuffledRoles[index],
-        originalRole: shuffledRoles[index],
-        alive:true,
-        eliminatedBy:null,
-        won:false
-      }));
-      const moderator = getModeratorPlayer();
-      state.moderatorName = moderator?.name || "Tok Dalang";
-      state.logs = [];
-      addLog(`Permainan dimulakan dengan ${state.players.length} peserta. ${state.moderatorName} dipilih sebagai Tok Dalang.`);
-      saveState();
-      showScreen("revealScreen");
-      renderReveal();
+        currentUser = currentUser || await ensureSignedIn();
+        const newGameId = await genUniqueGameId();
+        const newGameRef = db.collection("games").doc(newGameId);
+
+        const playerDocs = shuffledNames.map((name,index)=>({
+          id: genPlayerId(), name, role: shuffledRoles[index], order: index
+        }));
+        const moderatorPlayer = playerDocs.find(p => p.role === "moderator");
+        const moderatorName = moderatorPlayer?.name || "Tok Dalang";
+
+        const batch = db.batch();
+        batch.set(newGameRef, {
+          moderatorName,
+          moderatorUid: null,
+          moderatorPlayerId: moderatorPlayer?.id || null,
+          hostUid: currentUser.uid,
+          createdAt: new Date().toISOString(),
+          revealDeadRole, continueAfterScammer,
+          round: 1,
+          phase: "night",
+          nightResolved: false,
+          voteResolved: false,
+          toyolUses: 0,
+          previousProtectedId: null,
+          currentNight: {wolfTargetId:"",protectedId:"",seerTargetId:"",seerResult:"",toyolTargetId:""},
+          scammerWinners: [],
+          gameWinner: null,
+          logs: [{
+            id: cryptoId(), at: new Date().toISOString(), round:1, phase:"night", type:"info",
+            message: `Permainan dimulakan dengan ${playerDocs.length} peserta. ${moderatorName} dipilih sebagai Tok Dalang.`
+          }],
+          moderatorNotes: "",
+          lastMorningScript: "",
+          lastVoteScript: ""
+        });
+
+        playerDocs.forEach(p=>{
+          const priv = {
+            name: p.name, role: p.role, originalRole: p.role, order: p.order,
+            claimedUid: null, alive: true, eliminatedBy: null, won: false
+          };
+          if(p.role === "moderator") priv.moderatorPin = pin;
+          batch.set(newGameRef.collection("players").doc(p.id), priv);
+          batch.set(newGameRef.collection("publicPlayers").doc(p.id), {
+            name: p.name, claimed: false, order: p.order
+          });
+        });
+
+        await batch.commit();
+        gameId = newGameId;
+        saveDevice({gameId});
+        showGameCreatedScreen();
+      }catch(err){
+        console.error(err);
+        alert("Gagal mencipta game. Sila cuba lagi.\n" + (err.message || err));
+      }finally{
+        $("assignRolesBtn").disabled = false;
+      }
     }
 
-    function renderReveal(){
-      const player = state.players[state.revealIndex];
-      if(!player){
-        $("moderatorLoginName").textContent = `Moderator: ${state.moderatorName || "Tok Dalang"}`;
-        showScreen("moderatorLoginScreen");
-        renderPinPad();
-        return;
-      }
-      $("revealProgress").textContent = `Pemain ${state.revealIndex+1} daripada ${state.players.length}`;
-      $("revealPlayerName").textContent = player.name;
-      $("revealInstruction").textContent = state.revealVisible
-        ? "Baca peranan anda dan ingat objektifnya."
-        : "Pastikan hanya pemain ini melihat skrin.";
+    function showGameCreatedScreen(){
+      const url = new URL(location.href);
+      url.search = "";
+      url.searchParams.set("g", gameId);
+      $("gameCodeDisplay").textContent = gameId;
+      $("gameShareLink").value = url.toString();
+      showScreen("gameCreatedScreen");
+    }
 
+    async function showJoinScreen(opts={}){
+      showScreen("joinScreen");
+      $("joinCodeError").classList.add("hidden");
+      $("joinNameError").classList.add("hidden");
+      if(opts.skipCodeEntry && gameId){
+        $("joinCodeCard").classList.add("hidden");
+        $("joinNameCard").classList.add("hidden");
+        await loadPublicPlayersForJoin();
+      }else{
+        $("joinCodeCard").classList.remove("hidden");
+        $("joinNameCard").classList.add("hidden");
+        $("joinCodeInput").value = gameId || "";
+      }
+    }
+
+    async function loadPublicPlayersForJoin(){
+      try{
+        const snap = await db.collection("games").doc(gameId).collection("publicPlayers").orderBy("order").get();
+        const list = snap.docs.map(d => ({id:d.id, ...d.data()}));
+        if(!list.length) throw new Error("empty");
+        renderJoinNameList(list);
+        $("joinCodeCard").classList.add("hidden");
+        $("joinNameCard").classList.remove("hidden");
+      }catch(err){
+        console.error(err);
+        $("joinCodeCard").classList.remove("hidden");
+        $("joinNameCard").classList.add("hidden");
+        $("joinCodeError").textContent = "Kod game tidak sah atau game tidak wujud.";
+        $("joinCodeError").classList.remove("hidden");
+      }
+    }
+
+    function renderJoinNameList(list){
+      $("joinNameList").innerHTML = list.map(p => `
+        <div class="status-row">
+          <div class="status-main">
+            <div class="avatar">👤</div>
+            <div class="status-name">${escapeHtml(p.name)}</div>
+          </div>
+          <button class="btn btn-sm ${p.claimed ? "btn-secondary" : "btn-primary"}" data-pick-player="${p.id}" ${p.claimed ? "disabled" : ""}>
+            ${p.claimed ? "Sudah Log Masuk" : "Ini Saya"}
+          </button>
+        </div>
+      `).join("");
+      document.querySelectorAll("[data-pick-player]").forEach(btn=>{
+        btn.addEventListener("click", ()=>claimPlayer(btn.dataset.pickPlayer));
+      });
+    }
+
+    async function claimPlayer(playerId){
+      $("joinNameError").classList.add("hidden");
+      const playerRef = db.collection("games").doc(gameId).collection("players").doc(playerId);
+      const publicRef = db.collection("games").doc(gameId).collection("publicPlayers").doc(playerId);
+      const batch = db.batch();
+      batch.update(playerRef, {claimedUid: currentUser.uid});
+      batch.update(publicRef, {claimed: true});
+      try{
+        await batch.commit();
+        myPlayerId = playerId;
+        saveDevice({gameId, playerId});
+        await loadOwnRole();
+      }catch(err){
+        console.error(err);
+        $("joinNameError").textContent = "Nama ini baru sahaja log masuk pada peranti lain. Sila pilih nama lain.";
+        $("joinNameError").classList.remove("hidden");
+        await loadPublicPlayersForJoin();
+      }
+    }
+
+    async function loadOwnRole(){
+      try{
+        const snap = await playerDocRef(myPlayerId).get();
+        if(!snap.exists) throw new Error("not-found");
+        myPlayerData = {id:snap.id, ...snap.data()};
+        roleRevealed = false;
+        watchOwnRole();
+        renderRoleScreen();
+        return true;
+      }catch(err){
+        console.error(err);
+        return false;
+      }
+    }
+
+    function watchOwnRole(){
+      if(myRoleUnsub) myRoleUnsub();
+      myRoleUnsub = playerDocRef(myPlayerId).onSnapshot(snap=>{
+        if(!snap.exists) return;
+        myPlayerData = {id:snap.id, ...snap.data()};
+        if($("roleScreen").classList.contains("active")) renderRoleScreen();
+      });
+    }
+
+    function renderRoleScreen(){
+      $("roleGameCode").textContent = `Kod: ${gameId}`;
+      $("rolePlayerName").textContent = myPlayerData.name;
+      const def = ROLE_DEFS[myPlayerData.role];
       const card = $("secretCard");
-      const def = ROLE_DEFS[player.role];
-      if(state.revealVisible){
+      if(roleRevealed){
         card.classList.remove("hidden-role");
         $("secretIcon").textContent = def.icon;
         $("secretTitle").textContent = def.name;
-        $("secretDescription").textContent = player.role === "moderator"
-          ? `${def.description} PIN panel anda ialah ${state.moderatorPin}. Ingat PIN ini dan jangan dedahkan kepada pemain lain.`
+        $("secretDescription").textContent = myPlayerData.role === "moderator"
+          ? `${def.description} PIN panel anda ialah ${myPlayerData.moderatorPin}. Ingat PIN ini dan jangan dedahkan kepada pemain lain.`
           : def.description;
         $("revealRoleBtn").classList.add("hidden");
-        $("hideNextBtn").classList.remove("hidden");
-        $("hideNextBtn").textContent = state.revealIndex === state.players.length-1
-          ? "Sembunyikan & Serah Kepada Tok Dalang"
-          : "Sembunyikan & Serah Kepada Pemain Seterusnya";
+        $("hideRoleBtn").classList.remove("hidden");
       }else{
         card.classList.add("hidden-role");
         $("secretIcon").textContent = "🔒";
         $("secretTitle").textContent = "Watak Dirahsiakan";
         $("secretDescription").textContent = "Tekan butang di bawah apabila anda sudah bersedia.";
         $("revealRoleBtn").classList.remove("hidden");
-        $("hideNextBtn").classList.add("hidden");
+        $("hideRoleBtn").classList.add("hidden");
       }
+      $("roleModeratorCard").classList.toggle("hidden", myPlayerData.role !== "moderator");
+      showScreen("roleScreen");
+    }
+
+    function showModeratorLogin(){
+      pinBuffer = "";
+      $("moderatorGameCodeField").classList.toggle("hidden", !!gameId);
+      $("moderatorLoginName").textContent = gameId ? `Kod Game: ${gameId}` : "Masukkan kod game";
+      $("pinError").classList.add("hidden");
+      showScreen("moderatorLoginScreen");
+      renderPinPad();
     }
 
     function renderPinPad(){
@@ -1036,32 +1251,108 @@
       $("pinError").classList.add("hidden");
     }
 
-    function enterModeratorPanel(){
-      if(pinBuffer !== state.moderatorPin){
+    async function enterModeratorPanel(){
+      $("pinError").classList.add("hidden");
+      const codeField = $("moderatorGameCodeField");
+      if(!codeField.classList.contains("hidden")){
+        const code = $("moderatorGameCodeInput").value.trim().toUpperCase();
+        if(!code){
+          $("pinError").textContent = "Masukkan kod game.";
+          $("pinError").classList.remove("hidden");
+          return;
+        }
+        gameId = code;
+      }
+      if(!gameId || pinBuffer.length < 4){
+        $("pinError").textContent = "Masukkan kod game dan PIN penuh.";
         $("pinError").classList.remove("hidden");
         return;
       }
+
+      $("pinEnterBtn").disabled = true;
+      try{
+        const gref = gameDocRef();
+        const snap = await gref.get();
+        if(!snap.exists){
+          $("pinError").textContent = "Kod game tidak sah.";
+          $("pinError").classList.remove("hidden");
+          return;
+        }
+        const data = snap.data();
+
+        if(data.moderatorUid && data.moderatorUid === currentUser.uid){
+          const modSnap = await gref.collection("players").doc(data.moderatorPlayerId).get();
+          const correctPin = modSnap.exists ? modSnap.data().moderatorPin : null;
+          if(correctPin && pinBuffer !== correctPin){
+            $("pinError").textContent = "PIN tidak betul.";
+            $("pinError").classList.remove("hidden");
+            return;
+          }
+          game = {id:snap.id, ...data};
+          saveDevice({gameId, playerId: myPlayerId, isModerator:true});
+          await startModeratorView();
+          return;
+        }
+
+        if(data.moderatorUid){
+          $("pinError").textContent = "Panel ini sudah dibuka pada peranti lain.";
+          $("pinError").classList.remove("hidden");
+          return;
+        }
+
+        try{
+          await gref.update({moderatorUid: currentUser.uid, pinAttempt: pinBuffer});
+        }catch(err){
+          $("pinError").textContent = "PIN tidak betul.";
+          $("pinError").classList.remove("hidden");
+          return;
+        }
+        const fresh = await gref.get();
+        game = {id:fresh.id, ...fresh.data()};
+        saveDevice({gameId, playerId: myPlayerId, isModerator:true});
+        await startModeratorView();
+      }catch(err){
+        console.error(err);
+        $("pinError").textContent = "Ralat. Sila cuba lagi.";
+        $("pinError").classList.remove("hidden");
+      }finally{
+        $("pinEnterBtn").disabled = false;
+      }
+    }
+
+    async function startModeratorView(){
       showScreen("moderatorScreen");
-      renderModerator();
+      if(gameUnsub) gameUnsub();
+      if(playersUnsub) playersUnsub();
+      gameUnsub = gameDocRef().onSnapshot(snap=>{
+        if(!snap.exists) return;
+        game = {id:snap.id, ...snap.data()};
+        renderModerator();
+      });
+      playersUnsub = gameDocRef().collection("players").onSnapshot(snap=>{
+        modPlayers = {};
+        snap.forEach(d => { modPlayers[d.id] = {id:d.id, ...d.data()}; });
+        renderModerator();
+      });
     }
 
     function renderModerator(){
-      const moderatorName = state.moderatorName || "Tok Dalang";
-      $("roundChip").textContent = `Pusingan ${state.round}`;
+      if(!game) return;
+      const moderatorName = game.moderatorName || "Tok Dalang";
+      $("roundChip").textContent = `Pusingan ${game.round}`;
       $("moderatorIdentity").textContent = `Moderator: ${moderatorName}`;
       $("scriptModeratorName").textContent = moderatorName;
-      $("phaseSummary").textContent = state.gameWinner
+      $("phaseSummary").textContent = game.gameWinner
         ? "Permainan telah tamat"
-        : state.phase === "night" ? "Fasa Malam sedang berjalan" : "Fasa Siang dan Undian";
+        : game.phase === "night" ? "Fasa Malam sedang berjalan" : "Fasa Siang dan Undian";
       renderWinnerArea();
       renderStatusList();
       renderModeratorScript();
       renderNightActions();
       renderVoteList();
       renderLogs();
-      $("moderatorNotes").value = state.moderatorNotes || "";
+      if(document.activeElement !== $("moderatorNotes")) $("moderatorNotes").value = game.moderatorNotes || "";
     }
-
 
     function scriptLinesToHtml(text){
       return String(text || "")
@@ -1073,47 +1364,47 @@
     }
 
     function getWinnerClosingScript(){
-      if(state.gameWinner === "village"){
+      if(game.gameWinner === "village"){
         return "Permainan telah tamat. Semua Harimau Jadian berjaya disingkirkan. Penduduk Kampung memenangi permainan!";
       }
-      if(state.gameWinner === "wolf"){
+      if(game.gameWinner === "wolf"){
         return "Permainan telah tamat. Bilangan Harimau Jadian kini sama atau melebihi penduduk yang masih hidup. Kumpulan Harimau memenangi permainan!";
       }
-      if(state.gameWinner === "scammer"){
+      if(game.gameWinner === "scammer"){
         return "Permainan telah tamat. Scammer berjaya membuat penduduk menyingkirkannya melalui undian. Scammer memenangi permainan!";
       }
       return "Permainan telah tamat. Terima kasih kepada semua pemain kerana memberikan kerjasama.";
     }
 
     function getCurrentModeratorScript(){
-      const moderatorName = state.moderatorName || "Tok Dalang";
-      if(state.gameWinner){
-        const scammerExtra = state.scammerWinners.length && state.gameWinner !== "scammer"
-          ? `Pemenang individu Scammer ialah ${state.scammerWinners.map(id => getPlayer(id)?.name).filter(Boolean).join(", ")}.`
+      const moderatorName = game.moderatorName || "Tok Dalang";
+      if(game.gameWinner){
+        const scammerExtra = game.scammerWinners?.length && game.gameWinner !== "scammer"
+          ? `Pemenang individu Scammer ialah ${game.scammerWinners.map(id => getPlayerObj(id)?.name).filter(Boolean).join(", ")}.`
           : "";
         return `${getWinnerClosingScript()}\n${scammerExtra}\nTerima kasih semua. Moderator untuk sesi ini ialah ${moderatorName}.`;
       }
 
-      if(state.phase === "night"){
+      if(game.phase === "night"){
         return [
-          `Malam pusingan ${state.round} bermula. Semua pemain, sila tutup mata dan jangan bercakap.`,
+          `Malam pusingan ${game.round} bermula. Semua pemain, sila tutup mata dan jangan bercakap.`,
           "Harimau Jadian dan Ketua Harimau Jadian, sila buka mata. Pilih seorang mangsa secara senyap.",
           "Harimau Jadian, sila tutup mata.",
           "Nurse, sila buka mata. Pilih seorang pemain untuk dilindungi malam ini.",
           "Nurse, sila tutup mata.",
           "Pawang, sila buka mata. Pilih seorang pemain untuk diperiksa.",
           "Pawang, sila tutup mata.",
-          state.toyolUses < 2
-            ? `Toyol, sila buka mata. Anda boleh memilih seorang pemain untuk ditukar watak. Baki kuasa: ${2-state.toyolUses} kali.`
+          game.toyolUses < 2
+            ? `Toyol, sila buka mata. Anda boleh memilih seorang pemain untuk ditukar watak. Baki kuasa: ${2-game.toyolUses} kali.`
             : "Kuasa Toyol telah habis dan tidak akan dipanggil lagi.",
           "Toyol, sila tutup mata.",
           "Malam telah berakhir. Semua pemain, sila buka mata."
         ].join("\n");
       }
 
-      const morning = state.lastMorningScript ||
-        `Selamat pagi, penduduk kampung. Malam pusingan ${state.round} telah berakhir.`;
-      if(!state.voteResolved){
+      const morning = game.lastMorningScript ||
+        `Selamat pagi, penduduk kampung. Malam pusingan ${game.round} telah berakhir.`;
+      if(!game.voteResolved){
         return [
           morning,
           "Sekarang anda diberikan masa untuk berbincang. Perhatikan cerita yang bercanggah dan tentukan siapa yang mencurigakan.",
@@ -1122,7 +1413,7 @@
         ].join("\n");
       }
       return [
-        state.lastVoteScript || "Keputusan undian telah direkodkan.",
+        game.lastVoteScript || "Keputusan undian telah direkodkan.",
         "Jika permainan belum tamat, semua pemain bersedia untuk memasuki malam seterusnya."
       ].join("\n");
     }
@@ -1132,7 +1423,7 @@
         {
           title:"1. Pembukaan Permainan",
           text:[
-            `Selamat datang ke Misteri Kampung Bulan Purnama. Saya ${state.moderatorName || "Tok Dalang"}, moderator untuk permainan ini.`,
+            `Selamat datang ke Misteri Kampung Bulan Purnama. Saya ${game.moderatorName || "Tok Dalang"}, moderator untuk permainan ini.`,
             "Setiap pemain mempunyai watak rahsia. Jangan tunjuk atau beritahu watak anda kepada sesiapa kecuali melalui strategi perbincangan.",
             "Semasa malam, semua pemain mesti menutup mata. Buka mata hanya apabila watak anda dipanggil.",
             "Semasa siang, semua pemain boleh berbincang sebelum membuat undian. Undian Penghulu Kampung bernilai 2 mata.",
@@ -1190,9 +1481,9 @@
 
     function renderModeratorScript(){
       const currentText = getCurrentModeratorScript();
-      $("currentScriptLabel").textContent = state.gameWinner
+      $("currentScriptLabel").textContent = game.gameWinner
         ? "Skrip Penutup"
-        : state.phase === "night" ? `Skrip Malam · Pusingan ${state.round}` : `Skrip Siang · Pusingan ${state.round}`;
+        : game.phase === "night" ? `Skrip Malam · Pusingan ${game.round}` : `Skrip Siang · Pusingan ${game.round}`;
       $("currentModeratorScript").innerHTML = scriptLinesToHtml(currentText);
       $("copyCurrentScriptBtn").dataset.copyText = currentText;
 
@@ -1207,7 +1498,7 @@
       `).join("");
     }
 
-    async function copyModeratorText(text,button){
+    async function copyTextToClipboard(text,button){
       try{
         await navigator.clipboard.writeText(text);
       }catch(err){
@@ -1228,7 +1519,7 @@
     function renderWinnerArea(){
       const area = $("winnerArea");
       const blocks = [];
-      if(state.gameWinner === "village"){
+      if(game.gameWinner === "village"){
         blocks.push(`
           <div class="winner-banner">
             <div style="font-size:46px">🏡</div>
@@ -1236,7 +1527,7 @@
             <p>Semua Harimau Jadian telah disingkirkan.</p>
           </div>
         `);
-      }else if(state.gameWinner === "wolf"){
+      }else if(game.gameWinner === "wolf"){
         blocks.push(`
           <div class="winner-banner wolf">
             <div style="font-size:46px">🐺</div>
@@ -1244,7 +1535,7 @@
             <p>Bilangan Harimau kini sama atau melebihi pemain lain yang masih hidup.</p>
           </div>
         `);
-      }else if(state.gameWinner === "scammer"){
+      }else if(game.gameWinner === "scammer"){
         blocks.push(`
           <div class="winner-banner scammer">
             <div style="font-size:46px">🎭</div>
@@ -1253,8 +1544,8 @@
           </div>
         `);
       }
-      if(state.scammerWinners.length && state.gameWinner !== "scammer"){
-        const names = state.scammerWinners.map(id => getPlayer(id)?.name).filter(Boolean).join(", ");
+      if(game.scammerWinners?.length && game.gameWinner !== "scammer"){
+        const names = game.scammerWinners.map(id => getPlayerObj(id)?.name).filter(Boolean).join(", ");
         blocks.push(`
           <div class="notice success" style="margin-bottom:14px">
             🎭 Pemenang individu Scammer: <strong>${escapeHtml(names)}</strong>
@@ -1265,10 +1556,10 @@
     }
 
     function renderStatusList(){
-      $("statusList").innerHTML = state.players.map(player => {
+      $("statusList").innerHTML = orderedPlayers().map(player => {
         const def = ROLE_DEFS[player.role];
         const isModerator = player.role === "moderator";
-        const won = player.won || state.scammerWinners.includes(player.id);
+        const won = player.won || game.scammerWinners?.includes(player.id);
         const rowClass = isModerator ? "" : (player.alive ? "" : "dead");
         const tagClass = isModerator ? "alive" : (won ? "winner" : player.alive ? "alive" : "dead");
         const tagText = isModerator ? "Moderator" : (won ? "Pemenang" : player.alive ? "Hidup" : "Tersingkir");
@@ -1301,7 +1592,7 @@
       const nurse = alive.find(p => p.role === "doctor");
       const seer = alive.find(p => p.role === "seer");
       const toyol = alive.find(p => p.role === "toyol");
-      const nightDisabled = state.phase !== "night" || state.nightResolved || !!state.gameWinner;
+      const nightDisabled = game.phase !== "night" || game.nightResolved || !!game.gameWinner;
 
       $("nightLockedNotice").classList.toggle("hidden", !nightDisabled);
       $("resolveNightBtn").disabled = nightDisabled;
@@ -1313,21 +1604,21 @@
           <p>${wolves.length ? `Aktif: ${wolves.map(p=>escapeHtml(p.name)).join(", ")}` : "Tiada Harimau yang masih hidup."}</p>
           <label>Sasaran malam</label>
           <select id="wolfTargetSelect" ${nightDisabled || !wolves.length ? "disabled" : ""}>
-            ${optionList(wolfTargets,state.currentNight.wolfTargetId,"Pilih mangsa")}
+            ${optionList(wolfTargets,game.currentNight.wolfTargetId,"Pilih mangsa")}
           </select>
         </article>
       `;
 
-      const nurseTargets = nurse ? alive.filter(p => p.id !== state.previousProtectedId) : [];
+      const nurseTargets = nurse ? alive.filter(p => p.id !== game.previousProtectedId) : [];
       const nurseCard = `
         <article class="action-card">
           <h3>🩺 Perlindungan Nurse</h3>
           <p>${nurse ? `Aktif: ${escapeHtml(nurse.name)}` : "Nurse tiada atau telah tersingkir."}</p>
           <label>Pemain dilindungi</label>
           <select id="protectedSelect" ${nightDisabled || !nurse ? "disabled" : ""}>
-            ${optionList(nurseTargets,state.currentNight.protectedId,"Pilih pemain")}
+            ${optionList(nurseTargets,game.currentNight.protectedId,"Pilih pemain")}
           </select>
-          ${state.previousProtectedId ? `<div class="action-result">Tidak boleh melindungi ${escapeHtml(getPlayer(state.previousProtectedId)?.name || "pemain sebelumnya")} dua malam berturut-turut.</div>` : ""}
+          ${game.previousProtectedId ? `<div class="action-result">Tidak boleh melindungi ${escapeHtml(getPlayerObj(game.previousProtectedId)?.name || "pemain sebelumnya")} dua malam berturut-turut.</div>` : ""}
         </article>
       `;
 
@@ -1338,9 +1629,9 @@
           <p>${seer ? `Aktif: ${escapeHtml(seer.name)}` : "Pawang tiada atau telah tersingkir."}</p>
           <label>Pemain diperiksa</label>
           <select id="seerTargetSelect" ${nightDisabled || !seer ? "disabled" : ""}>
-            ${optionList(seerTargets,state.currentNight.seerTargetId,"Pilih pemain")}
+            ${optionList(seerTargets,game.currentNight.seerTargetId,"Pilih pemain")}
           </select>
-          ${state.currentNight.seerResult ? `<div class="action-result">${escapeHtml(state.currentNight.seerResult)}</div>` : ""}
+          ${game.currentNight.seerResult ? `<div class="action-result">${escapeHtml(game.currentNight.seerResult)}</div>` : ""}
         </article>
       `;
 
@@ -1348,10 +1639,10 @@
       const toyolCard = `
         <article class="action-card">
           <h3>👺 Kuasa Toyol</h3>
-          <p>${toyol ? `Aktif: ${escapeHtml(toyol.name)} · Penggunaan ${state.toyolUses}/2` : "Toyol tiada atau telah bertukar watak."}</p>
+          <p>${toyol ? `Aktif: ${escapeHtml(toyol.name)} · Penggunaan ${game.toyolUses}/2` : "Toyol tiada atau telah bertukar watak."}</p>
           <label>Sasaran curi watak</label>
-          <select id="toyolTargetSelect" ${nightDisabled || !toyol || state.toyolUses>=2 ? "disabled" : ""}>
-            ${optionList(toyolTargets,state.currentNight.toyolTargetId,"Tidak guna kuasa")}
+          <select id="toyolTargetSelect" ${nightDisabled || !toyol || game.toyolUses>=2 ? "disabled" : ""}>
+            ${optionList(toyolTargets,game.currentNight.toyolTargetId,"Tidak guna kuasa")}
           </select>
           <div class="field-help">Toyol dan sasaran akan bertukar watak selepas malam diselesaikan.</div>
         </article>
@@ -1367,70 +1658,85 @@
       ];
       bindings.forEach(([id,key])=>{
         const el = $(id);
-        if(el) el.addEventListener("change",()=>{
-          state.currentNight[key] = el.value;
+        if(el) el.addEventListener("change",async ()=>{
+          game.currentNight[key] = el.value;
           if(key === "seerTargetId"){
-            state.currentNight.seerResult = "";
-            const target = getPlayer(el.value);
+            game.currentNight.seerResult = "";
+            const target = getPlayerObj(el.value);
             if(target){
               const result = (target.role === "alpha" || !isWolfRole(target.role)) ? "Orang Kampung" : "Harimau Jadian";
-              state.currentNight.seerResult = `Keputusan Pawang untuk ${target.name}: ${result}`;
+              game.currentNight.seerResult = `Keputusan Pawang untuk ${target.name}: ${result}`;
             }
           }
-          saveState();
+          await gameDocRef().update({currentNight: game.currentNight});
           if(key === "seerTargetId") renderNightActions();
         });
       });
     }
 
-    function resolveNight(skip=false){
-      if(state.gameWinner || state.phase !== "night" || state.nightResolved) return;
+    async function resolveNight(skip=false){
+      if(game.gameWinner || game.phase !== "night" || game.nightResolved) return;
 
-      const actions = state.currentNight;
-      const wolfTarget = getPlayer(actions.wolfTargetId);
-      const protectedPlayer = getPlayer(actions.protectedId);
+      const actions = game.currentNight;
+      const wolfTarget = getPlayerObj(actions.wolfTargetId);
+      const protectedPlayer = getPlayerObj(actions.protectedId);
       const toyol = getAlivePlayers().find(p => p.role === "toyol");
-      const toyolTarget = getPlayer(actions.toyolTargetId);
+      const toyolTarget = getPlayerObj(actions.toyolTargetId);
+
+      const logs = [...(game.logs||[])];
+      const pushLog = message => logs.unshift({id:cryptoId(),at:new Date().toISOString(),round:game.round,phase:game.phase,type:"info",message});
+      const playerUpdates = {};
 
       if(skip){
-        addLog(`Malam ${state.round}: Tok Dalang meneruskan permainan tanpa kejadian malam.`);
+        pushLog(`Malam ${game.round}: Tok Dalang meneruskan permainan tanpa kejadian malam.`);
       }else{
         if(wolfTarget && wolfTarget.alive){
           if(protectedPlayer && protectedPlayer.id === wolfTarget.id){
-            addLog(`Malam ${state.round}: ${wolfTarget.name} diserang tetapi diselamatkan oleh Nurse.`);
+            pushLog(`Malam ${game.round}: ${wolfTarget.name} diserang tetapi diselamatkan oleh Nurse.`);
           }else{
-            eliminatePlayer(wolfTarget.id,"night");
-            addLog(`Malam ${state.round}: ${wolfTarget.name} menjadi mangsa Harimau Jadian.`);
+            playerUpdates[wolfTarget.id] = {alive:false, eliminatedBy:"night"};
+            pushLog(`Malam ${game.round}: ${wolfTarget.name} menjadi mangsa Harimau Jadian.`);
           }
         }else{
-          addLog(`Malam ${state.round}: Kumpulan Harimau tidak memilih mangsa.`);
+          pushLog(`Malam ${game.round}: Kumpulan Harimau tidak memilih mangsa.`);
         }
 
         if(actions.seerTargetId && actions.seerResult){
-          addLog(`Malam ${state.round}: ${actions.seerResult}.`);
+          pushLog(`Malam ${game.round}: ${actions.seerResult}.`);
         }
 
-        if(toyol && toyolTarget && toyolTarget.alive && state.toyolUses < 2){
-          const toyolOldRole = toyol.role;
-          const targetOldRole = toyolTarget.role;
-          toyol.role = targetOldRole;
-          toyolTarget.role = toyolOldRole;
-          state.toyolUses += 1;
-          addLog(`Malam ${state.round}: Toyol menukar watak antara ${toyol.name} dan ${toyolTarget.name}. Penggunaan ${state.toyolUses}/2.`);
+        if(toyol && toyolTarget && toyolTarget.alive && game.toyolUses < 2){
+          playerUpdates[toyol.id] = {...(playerUpdates[toyol.id]||{}), role: toyolTarget.role};
+          playerUpdates[toyolTarget.id] = {...(playerUpdates[toyolTarget.id]||{}), role: toyol.role};
+          pushLog(`Malam ${game.round}: Toyol menukar watak antara ${toyol.name} dan ${toyolTarget.name}. Penggunaan ${game.toyolUses+1}/2.`);
         }
       }
 
-      state.lastMorningScript = buildMorningScript(wolfTarget,protectedPlayer,skip);
-      state.previousProtectedId = actions.protectedId || null;
-      state.nightResolved = true;
-      state.phase = "day";
-      state.voteResolved = false;
-      saveState();
-      checkGameWinner();
+      const gamePatch = {
+        logs,
+        lastMorningScript: buildMorningScript(wolfTarget,protectedPlayer,skip),
+        previousProtectedId: actions.protectedId || null,
+        nightResolved: true,
+        phase: "day",
+        voteResolved: false
+      };
+      if(!skip && toyol && toyolTarget && toyolTarget.alive && game.toyolUses < 2){
+        gamePatch.toyolUses = game.toyolUses + 1;
+      }
+
+      Object.assign(game, gamePatch);
+      Object.entries(playerUpdates).forEach(([id,patch]) => Object.assign(modPlayers[id], patch));
+
+      await Promise.all([
+        gameDocRef().update(gamePatch),
+        ...Object.entries(playerUpdates).map(([id,patch]) => playerDocRef(id).update(patch))
+      ]);
+
+      await checkGameWinner();
       renderModerator();
       switchTab("voteTab");
       showResultModal(
-        `Pagi Pusingan ${state.round}`,
+        `Pagi Pusingan ${game.round}`,
         buildMorningAnnouncement(wolfTarget,protectedPlayer,skip)
       );
     }
@@ -1441,7 +1747,7 @@
       if(protectedPlayer && protectedPlayer.id === wolfTarget.id){
         return "Selamat pagi, penduduk kampung. Serangan berlaku malam tadi, tetapi mangsa berjaya diselamatkan dan tiada penduduk yang terkorban.";
       }
-      const roleText = state.revealDeadRole ? ` Wataknya ialah ${roleLabel(wolfTarget.role)}.` : "";
+      const roleText = game.revealDeadRole ? ` Wataknya ialah ${roleLabel(wolfTarget.role)}.` : "";
       return `Selamat pagi, penduduk kampung. Malam tadi, ${wolfTarget.name} telah menjadi mangsa Harimau Jadian.${roleText}`;
     }
 
@@ -1451,20 +1757,13 @@
       if(protectedPlayer && protectedPlayer.id === wolfTarget.id){
         return `<div class="notice success">Pagi telah tiba. Berlaku serangan malam tadi, tetapi tiada penduduk yang terkorban.</div>`;
       }
-      const roleText = state.revealDeadRole ? ` Wataknya ialah <strong>${escapeHtml(roleLabel(wolfTarget.role))}</strong>.` : "";
+      const roleText = game.revealDeadRole ? ` Wataknya ialah <strong>${escapeHtml(roleLabel(wolfTarget.role))}</strong>.` : "";
       return `<div class="notice danger">Pagi telah tiba. <strong>${escapeHtml(wolfTarget.name)}</strong> ditemui terkorban.${roleText}</div>`;
-    }
-
-    function eliminatePlayer(id,method){
-      const player = getPlayer(id);
-      if(!player || !player.alive) return;
-      player.alive = false;
-      player.eliminatedBy = method;
     }
 
     function renderVoteList(){
       const alive = getAlivePlayers();
-      const locked = state.phase !== "day" || !state.nightResolved || state.voteResolved || !!state.gameWinner;
+      const locked = game.phase !== "day" || !game.nightResolved || game.voteResolved || !!game.gameWinner;
       $("voteLockedNotice").classList.toggle("hidden", !locked);
       $("tallyVotesBtn").disabled = locked;
       $("clearVotesBtn").disabled = locked;
@@ -1485,7 +1784,7 @@
         `;
       }).join("");
 
-      if(!state.voteResolved) $("voteResult").innerHTML = "";
+      if(!game.voteResolved) $("voteResult").innerHTML = "";
     }
 
     function collectVotes(){
@@ -1496,8 +1795,8 @@
       return votes;
     }
 
-    function tallyVotes(){
-      if(state.gameWinner || state.phase !== "day" || state.voteResolved) return;
+    async function tallyVotes(){
+      if(game.gameWinner || game.phase !== "day" || game.voteResolved) return;
       const alive = getAlivePlayers();
       const votes = collectVotes();
       if(votes.length !== alive.length){
@@ -1507,13 +1806,13 @@
 
       const totals = {};
       votes.forEach(vote=>{
-        const voter = getPlayer(vote.voterId);
+        const voter = getPlayerObj(vote.voterId);
         const weight = voter?.role === "mayor" ? 2 : 1;
         totals[vote.targetId] = (totals[vote.targetId] || 0) + weight;
       });
 
       const ranking = Object.entries(totals)
-        .map(([id,points])=>({player:getPlayer(id),points}))
+        .map(([id,points])=>({player:getPlayerObj(id),points}))
         .sort((a,b)=>b.points-a.points || a.player.name.localeCompare(b.player.name));
 
       const max = ranking[0]?.points || 0;
@@ -1529,47 +1828,63 @@
         </div>
       `;
 
+      const logs = [...(game.logs||[])];
+      const pushLog = message => logs.unshift({id:cryptoId(),at:new Date().toISOString(),round:game.round,phase:game.phase,type:"info",message});
+
       if(tied.length > 1){
         const names = tied.map(x=>x.player.name).join(", ");
-        state.lastVoteScript = `Keputusan undian seri antara ${names}, masing-masing dengan ${max} mata. Calon yang seri diberikan satu minit untuk mempertahankan diri sebelum undian semula.`;
-        addLog(`Siang ${state.round}: Undian seri antara ${names} dengan ${max} mata.`);
-        saveState();
+        const lastVoteScript = `Keputusan undian seri antara ${names}, masing-masing dengan ${max} mata. Calon yang seri diberikan satu minit untuk mempertahankan diri sebelum undian semula.`;
+        pushLog(`Siang ${game.round}: Undian seri antara ${names} dengan ${max} mata.`);
+        const gamePatch = {lastVoteScript, logs};
+        Object.assign(game, gamePatch);
+        await gameDocRef().update(gamePatch);
+        renderLogs();
         showResultModal("Undian Seri",`
           <div class="notice info">Undian seri antara <strong>${escapeHtml(names)}</strong>. Beri mereka peluang mempertahankan diri, kemudian kosongkan undian dan undi semula.</div>
         `);
-        renderLogs();
         return;
       }
 
       const eliminated = tied[0].player;
-      eliminatePlayer(eliminated.id,"vote");
-      state.voteResolved = true;
-      const spokenRole = state.revealDeadRole ? ` Wataknya ialah ${roleLabel(eliminated.role)}.` : "";
-      state.lastVoteScript = `Keputusan undian telah selesai. ${eliminated.name} mendapat undian tertinggi dengan ${max} mata dan disingkirkan daripada kampung.${spokenRole}`;
-      addLog(`Siang ${state.round}: ${eliminated.name} disingkirkan melalui undian dengan ${max} mata.`);
+      pushLog(`Siang ${game.round}: ${eliminated.name} disingkirkan melalui undian dengan ${max} mata.`);
+
+      const playerPatch = {alive:false, eliminatedBy:"vote"};
+      const gamePatch = {voteResolved:true};
+      let lastVoteScript = `Keputusan undian telah selesai. ${eliminated.name} mendapat undian tertinggi dengan ${max} mata dan disingkirkan daripada kampung.`;
+      if(game.revealDeadRole) lastVoteScript += ` Wataknya ialah ${roleLabel(eliminated.role)}.`;
 
       let scammerMessage = "";
       if(eliminated.role === "scammer"){
-        if(!state.scammerWinners.includes(eliminated.id)) state.scammerWinners.push(eliminated.id);
-        eliminated.won = true;
+        const scammerWinners = [...(game.scammerWinners||[])];
+        if(!scammerWinners.includes(eliminated.id)) scammerWinners.push(eliminated.id);
+        playerPatch.won = true;
         scammerMessage = `<div class="notice success" style="margin-top:10px">🎭 ${escapeHtml(eliminated.name)} ialah Scammer dan menang secara individu!</div>`;
-        state.lastVoteScript += ` Rupa-rupanya ${eliminated.name} ialah Scammer. Scammer berjaya mencapai objektifnya dan menang secara individu!`;
-        addLog(`${eliminated.name} memenangi permainan sebagai Scammer.`);
-        if(!state.continueAfterScammer) state.gameWinner = "scammer";
+        lastVoteScript += ` Rupa-rupanya ${eliminated.name} ialah Scammer. Scammer berjaya mencapai objektifnya dan menang secara individu!`;
+        pushLog(`${eliminated.name} memenangi permainan sebagai Scammer.`);
+        gamePatch.scammerWinners = scammerWinners;
+        if(!game.continueAfterScammer) gamePatch.gameWinner = "scammer";
       }
+      gamePatch.lastVoteScript = lastVoteScript;
+      gamePatch.logs = logs;
 
-      const roleText = state.revealDeadRole
+      const roleText = game.revealDeadRole
         ? `<p>Watak: <strong>${escapeHtml(roleLabel(eliminated.role))}</strong></p>`
         : `<p>Wataknya kekal dirahsiakan.</p>`;
 
-      saveState();
-      checkGameWinner();
+      Object.assign(game, gamePatch);
+      Object.assign(modPlayers[eliminated.id], playerPatch);
+
+      await Promise.all([
+        gameDocRef().update(gamePatch),
+        playerDocRef(eliminated.id).update(playerPatch)
+      ]);
+      await checkGameWinner();
       renderModerator();
       showResultModal("Keputusan Undian",`
         <div class="notice danger"><strong>${escapeHtml(eliminated.name)}</strong> telah disingkirkan dengan ${max} mata.</div>
         ${roleText}
         ${scammerMessage}
-        ${!state.gameWinner ? `<button class="btn btn-primary btn-block" id="nextRoundModalBtn">Mulakan Pusingan Seterusnya</button>` : ""}
+        ${!game.gameWinner ? `<button class="btn btn-primary btn-block" id="nextRoundModalBtn">Mulakan Pusingan Seterusnya</button>` : ""}
       `);
 
       setTimeout(()=>{
@@ -1586,46 +1901,65 @@
       $("voteResult").innerHTML = "";
     }
 
-    function startNextRound(){
-      if(state.gameWinner) return;
-      state.round += 1;
-      state.phase = "night";
-      state.nightResolved = false;
-      state.voteResolved = false;
-      state.currentNight = {...defaultState().currentNight};
-      state.lastMorningScript = "";
-      state.lastVoteScript = "";
-      addLog(`Pusingan ${state.round} bermula.`);
-      saveState();
+    async function startNextRound(){
+      if(game.gameWinner) return;
+      const patch = {
+        round: game.round + 1,
+        phase: "night",
+        nightResolved: false,
+        voteResolved: false,
+        currentNight: {wolfTargetId:"",protectedId:"",seerTargetId:"",seerResult:"",toyolTargetId:""},
+        lastMorningScript: "",
+        lastVoteScript: "",
+        logs: [{id:cryptoId(),at:new Date().toISOString(),round:game.round+1,phase:"night",type:"info",message:`Pusingan ${game.round+1} bermula.`}, ...(game.logs||[])]
+      };
+      Object.assign(game, patch);
+      await gameDocRef().update(patch);
       renderModerator();
       switchTab("nightTab");
     }
 
-    function checkGameWinner(){
-      if(state.gameWinner) return state.gameWinner;
+    async function checkGameWinner(){
+      if(game.gameWinner) return game.gameWinner;
       const alive = getAlivePlayers();
       const wolves = alive.filter(p => isWolfRole(p.role)).length;
       const others = alive.length - wolves;
 
+      let winner = null;
+      const wonIds = [];
+      const logs = [...(game.logs||[])];
+      const pushLog = message => logs.unshift({id:cryptoId(),at:new Date().toISOString(),round:game.round,phase:game.phase,type:"info",message});
+
       if(wolves === 0){
-        state.gameWinner = "village";
-        state.players.filter(p=>p.alive && !isWolfRole(p.role)).forEach(p=>p.won=true);
-        addLog("Penduduk Kampung menang kerana semua Harimau telah disingkirkan.");
+        winner = "village";
+        alive.filter(p=>!isWolfRole(p.role)).forEach(p=>wonIds.push(p.id));
+        pushLog("Penduduk Kampung menang kerana semua Harimau telah disingkirkan.");
       }else if(wolves >= others){
-        state.gameWinner = "wolf";
-        state.players.filter(p=>p.alive && isWolfRole(p.role)).forEach(p=>p.won=true);
-        addLog("Kumpulan Harimau menang kerana bilangan mereka sama atau melebihi pemain lain.");
+        winner = "wolf";
+        alive.filter(p=>isWolfRole(p.role)).forEach(p=>wonIds.push(p.id));
+        pushLog("Kumpulan Harimau menang kerana bilangan mereka sama atau melebihi pemain lain.");
       }
-      saveState();
-      return state.gameWinner;
+      if(!winner) return null;
+
+      game.gameWinner = winner;
+      game.logs = logs;
+      const writes = [gameDocRef().update({gameWinner:winner, logs})];
+      wonIds.forEach(id=>{
+        if(modPlayers[id]){
+          modPlayers[id].won = true;
+          writes.push(playerDocRef(id).update({won:true}));
+        }
+      });
+      await Promise.all(writes);
+      return winner;
     }
 
     function renderLogs(){
-      if(!state.logs.length){
+      if(!game.logs?.length){
         $("logList").innerHTML = `<div class="notice info">Belum ada rekod.</div>`;
         return;
       }
-      $("logList").innerHTML = state.logs.map(log=>`
+      $("logList").innerHTML = game.logs.map(log=>`
         <div class="log-item">
           <time>${new Date(log.at).toLocaleString("ms-MY")} · Pusingan ${log.round}</time>
           <div>${escapeHtml(log.message)}</div>
@@ -1636,21 +1970,22 @@
     function exportLog(){
       const lines = [
         "MISTERI KAMPUNG BULAN PURNAMA",
-        `Tarikh: ${new Date(state.createdAt).toLocaleString("ms-MY")}`,
-        `Moderator / Tok Dalang: ${state.moderatorName || "Tok Dalang"}`,
-        `Jumlah pemain: ${state.players.length}`,
+        `Kod Game: ${gameId}`,
+        `Tarikh: ${new Date(game.createdAt).toLocaleString("ms-MY")}`,
+        `Moderator / Tok Dalang: ${game.moderatorName || "Tok Dalang"}`,
+        `Jumlah pemain: ${orderedPlayers().length}`,
         "",
         "PEMAIN",
-        ...state.players.map(p=>`- ${p.name}: ${roleLabel(p.role)} | ${p.alive ? "Hidup" : "Tersingkir"}${p.won ? " | Pemenang" : ""}`),
+        ...orderedPlayers().map(p=>`- ${p.name}: ${roleLabel(p.role)} | ${p.alive ? "Hidup" : "Tersingkir"}${p.won ? " | Pemenang" : ""}`),
         "",
         "REKOD",
-        ...[...state.logs].reverse().map(l=>`[${new Date(l.at).toLocaleString("ms-MY")}] ${l.message}`)
+        ...[...game.logs].reverse().map(l=>`[${new Date(l.at).toLocaleString("ms-MY")}] ${l.message}`)
       ];
       const blob = new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `rekod-kampung-bulan-purnama-${new Date().toISOString().slice(0,10)}.txt`;
+      a.download = `rekod-kampung-bulan-purnama-${gameId}.txt`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -1672,21 +2007,32 @@
       $("resultModal").setAttribute("aria-hidden","true");
     }
 
-    function resumeGame(){
-      if(!loadState()) return;
-      if(state.gameWinner || state.phase || state.players.length){
-        $("moderatorLoginName").textContent = `Moderator: ${state.moderatorName || "Tok Dalang"}`;
-        showScreen("moderatorLoginScreen");
-        renderPinPad();
-      }
+    function cleanupListeners(){
+      if(gameUnsub){ gameUnsub(); gameUnsub=null; }
+      if(playersUnsub){ playersUnsub(); playersUnsub=null; }
+      if(myRoleUnsub){ myRoleUnsub(); myRoleUnsub=null; }
     }
 
-    function resetGame(){
-      const ok = confirm("Padam semua data permainan dan kembali ke halaman utama?");
+    async function resetGame(){
+      const ok = confirm("Padam permainan ini untuk SEMUA peserta dan kembali ke halaman utama?");
       if(!ok) return;
-      localStorage.removeItem(storageKey);
-      state = defaultState();
-      updateResumeButton();
+      try{
+        const gref = gameDocRef();
+        const [playersSnap, publicSnap] = await Promise.all([
+          gref.collection("players").get(),
+          gref.collection("publicPlayers").get()
+        ]);
+        const batch = db.batch();
+        playersSnap.forEach(d=>batch.delete(d.ref));
+        publicSnap.forEach(d=>batch.delete(d.ref));
+        batch.delete(gref);
+        await batch.commit();
+      }catch(err){
+        console.error(err);
+      }
+      cleanupListeners();
+      clearDevice();
+      gameId = null; myPlayerId = null; game = null; modPlayers = {};
       showScreen("homeScreen");
     }
 
@@ -1696,27 +2042,54 @@
         const names = getNames();
         if(!names.length) setRoleCounts(suggestedCounts(8));
       });
-      $("resumeBtn").addEventListener("click",resumeGame);
+      $("joinGameBtn").addEventListener("click",()=>{
+        gameId = null;
+        showJoinScreen({skipCodeEntry:false});
+      });
+      $("moderatorPanelHomeBtn").addEventListener("click",()=>{
+        gameId = null;
+        showModeratorLogin();
+      });
       $("backHomeBtn").addEventListener("click",()=>showScreen("homeScreen"));
       $("playerNames").addEventListener("input",()=>{
         validateSetup();
       });
-       $("autoRolesBtn").addEventListener("click",()=>{
+      $("autoRolesBtn").addEventListener("click",()=>{
         const n = getNames().length;
         setRoleCounts(suggestedCounts(n || 8));
       });
       $("assignRolesBtn").addEventListener("click",assignRoles);
+
+      $("copyShareLinkBtn").addEventListener("click",e=>copyTextToClipboard($("gameShareLink").value,e.currentTarget));
+      $("copyShareCodeBtn").addEventListener("click",e=>copyTextToClipboard(gameId,e.currentTarget));
+      $("continueAsPlayerBtn").addEventListener("click",()=>showJoinScreen({skipCodeEntry:true}));
+
+      $("joinCodeBtn").addEventListener("click",async ()=>{
+        const code = $("joinCodeInput").value.trim().toUpperCase();
+        if(!code) return;
+        gameId = code;
+        await loadPublicPlayersForJoin();
+        if(!$("joinNameCard").classList.contains("hidden")) saveDevice({gameId});
+      });
+      $("joinModeratorLinkBtn").addEventListener("click",()=>showModeratorLogin());
+      $("joinBackHomeBtn").addEventListener("click",()=>showScreen("homeScreen"));
+
       $("revealRoleBtn").addEventListener("click",()=>{
-        state.revealVisible = true;
-        saveState();
-        renderReveal();
+        roleRevealed = true;
+        renderRoleScreen();
       });
-      $("hideNextBtn").addEventListener("click",()=>{
-        state.revealVisible = false;
-        state.revealIndex += 1;
-        saveState();
-        renderReveal();
+      $("hideRoleBtn").addEventListener("click",()=>{
+        roleRevealed = false;
+        renderRoleScreen();
       });
+      $("openModeratorPanelBtn").addEventListener("click",()=>showModeratorLogin());
+      $("roleBackHomeBtn").addEventListener("click",()=>{
+        if(myRoleUnsub){ myRoleUnsub(); myRoleUnsub=null; }
+        clearDevice();
+        gameId=null; myPlayerId=null; myPlayerData=null;
+        showScreen("homeScreen");
+      });
+
       $("pinClearBtn").addEventListener("click",()=>{
         pinBuffer="";
         updatePinDisplay();
@@ -1728,17 +2101,19 @@
       $("clearVotesBtn").addEventListener("click",clearVotes);
       $("exportLogBtn").addEventListener("click",exportLog);
       $("copyCurrentScriptBtn").addEventListener("click",e=>{
-        copyModeratorText(e.currentTarget.dataset.copyText || "",e.currentTarget);
+        copyTextToClipboard(e.currentTarget.dataset.copyText || "",e.currentTarget);
       });
       $("fullModeratorScripts").addEventListener("click",e=>{
         const button = e.target.closest("[data-copy-script]");
         if(!button) return;
         const section = getFullModeratorScriptSections()[Number(button.dataset.copyScript)];
-        if(section) copyModeratorText(section.text,button);
+        if(section) copyTextToClipboard(section.text,button);
       });
+      let notesTimer = null;
       $("moderatorNotes").addEventListener("input",e=>{
-        state.moderatorNotes = e.target.value;
-        saveState();
+        game.moderatorNotes = e.target.value;
+        clearTimeout(notesTimer);
+        notesTimer = setTimeout(()=>gameDocRef().update({moderatorNotes: e.target.value}),600);
       });
       $("lockPanelBtn").addEventListener("click",()=>{
         showScreen("moderatorLoginScreen");
@@ -1768,13 +2143,54 @@
       });
     }
 
-    function init(){
+    async function init(){
       renderRoleGallery();
       renderRoleCountInputs();
       initEvents();
-      updateResumeButton();
       setRoleCounts(suggestedCounts(8));
       validateSetup();
+
+      try{
+        currentUser = await ensureSignedIn();
+      }catch(err){
+        console.error(err);
+        return;
+      }
+
+      const params = new URLSearchParams(location.search);
+      const urlCode = (params.get("g") || "").toUpperCase().trim();
+      const device = loadDevice();
+
+      if(urlCode && (!device || device.gameId !== urlCode)){
+        gameId = urlCode;
+        saveDevice({gameId});
+        await showJoinScreen({skipCodeEntry:true});
+        return;
+      }
+
+      if(device && device.gameId){
+        gameId = device.gameId;
+        if(device.isModerator){
+          try{
+            const snap = await gameDocRef().get();
+            if(snap.exists && snap.data().moderatorUid === currentUser.uid){
+              game = {id:snap.id, ...snap.data()};
+              myPlayerId = device.playerId || null;
+              await startModeratorView();
+              return;
+            }
+          }catch(err){ console.error(err); }
+        }
+        if(device.playerId){
+          myPlayerId = device.playerId;
+          const ok = await loadOwnRole();
+          if(ok) return;
+        }
+        await showJoinScreen({skipCodeEntry:true});
+        return;
+      }
+
+      showScreen("homeScreen");
     }
 
     init();
