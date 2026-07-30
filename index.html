@@ -147,8 +147,9 @@
     .role-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
     .role-card{
       border:1px solid var(--line);border-radius:18px;padding:15px;background:var(--surface);
-      position:relative;overflow:hidden
+      position:relative;overflow:hidden;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease
     }
+    .role-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(33,46,40,.1)}
     .role-card::after{content:"";position:absolute;inset:auto -25px -25px auto;width:78px;height:78px;border-radius:50%;background:rgba(30,90,70,.07)}
     .role-icon{font-size:30px}
     .role-card h3{margin:8px 0 5px;font-size:16px}
@@ -662,6 +663,19 @@
         </section>
       </section>
     </main>
+    <footer class="footer-note">© <span id="footerYear"></span> Misteri Kampung Bulan Purnama · Dicipta oleh Meonn</footer>
+  </div>
+
+  <div class="modal" id="roleInfoModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="roleInfoTitle">Watak</h3>
+        <button class="icon-btn" id="closeRoleInfoBtn" aria-label="Tutup">×</button>
+      </div>
+      <div style="font-size:48px" id="roleInfoIcon">🔮</div>
+      <span class="role-badge" id="roleInfoTeam" style="margin:10px 0 14px;display:inline-flex"></span>
+      <p id="roleInfoDescription" style="line-height:1.6;color:#39443F;margin:0"></p>
+    </div>
   </div>
 
   <div class="modal" id="helpModal" aria-hidden="true">
@@ -748,7 +762,7 @@
         name: "Pawang",
         icon: "🔮",
         team: "village",
-        short: "Periksa kumpulan seorang pemain setiap malam.",
+        short: "Periksa seorang pemain setiap malam.",
         description: "Setiap malam, pilih seorang pemain untuk diperiksa. Ketua Harimau Jadian akan kelihatan sebagai Orang Kampung."
       },
       doctor: {
@@ -890,22 +904,36 @@
       return ROLE_DEFS[role]?.icon || "❓";
     }
 
+    function teamLabel(team){
+      return team === "wolf" ? "Kumpulan Harimau" :
+             team === "village" ? "Penduduk Kampung" :
+             team === "neutral" ? "Berkecuali" :
+             team === "moderator" ? "Pengendali Permainan" : "Kumpulan berubah";
+    }
+
     function renderRoleGallery(){
       $("roleGallery").innerHTML = galleryRoleOrder.map(role => {
         const def = ROLE_DEFS[role];
-        const teamText = def.team === "wolf" ? "Kumpulan Harimau" :
-                         def.team === "village" ? "Penduduk Kampung" :
-                         def.team === "neutral" ? "Berkecuali" :
-                         def.team === "moderator" ? "Pengendali Permainan" : "Kumpulan berubah";
         return `
-          <article class="role-card">
+          <article class="role-card" data-role="${role}">
             <div class="role-icon">${def.icon}</div>
             <h3>${def.name}</h3>
             <p>${def.short}</p>
-            <span class="role-badge">${teamText}</span>
+            <span class="role-badge">${teamLabel(def.team)}</span>
           </article>
         `;
       }).join("");
+    }
+
+    function showRoleInfo(role){
+      const def = ROLE_DEFS[role];
+      if(!def) return;
+      $("roleInfoTitle").textContent = def.name;
+      $("roleInfoIcon").textContent = def.icon;
+      $("roleInfoTeam").textContent = teamLabel(def.team);
+      $("roleInfoDescription").textContent = def.description;
+      $("roleInfoModal").classList.add("open");
+      $("roleInfoModal").setAttribute("aria-hidden","false");
     }
 
     function renderRoleCountInputs(){
@@ -2141,6 +2169,18 @@
       $("resultModal").addEventListener("click",e=>{
         if(e.target === $("resultModal")) closeResultModal();
       });
+
+      $("roleGallery").addEventListener("click",e=>{
+        const card = e.target.closest("[data-role]");
+        if(card) showRoleInfo(card.dataset.role);
+      });
+      $("closeRoleInfoBtn").addEventListener("click",()=>{
+        $("roleInfoModal").classList.remove("open");
+        $("roleInfoModal").setAttribute("aria-hidden","true");
+      });
+      $("roleInfoModal").addEventListener("click",e=>{
+        if(e.target === $("roleInfoModal")) $("closeRoleInfoBtn").click();
+      });
     }
 
     async function init(){
@@ -2149,6 +2189,7 @@
       initEvents();
       setRoleCounts(suggestedCounts(8));
       validateSetup();
+      $("footerYear").textContent = new Date().getFullYear();
 
       try{
         currentUser = await ensureSignedIn();
