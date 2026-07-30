@@ -401,7 +401,7 @@
             <div class="field">
               <label for="moderatorPin">PIN Panel Tok Dalang</label>
               <input id="moderatorPin" type="password" inputmode="numeric" maxlength="6" placeholder="Contoh: 1234" />
-              <div class="field-help">Peserta yang mendapat watak Tok Dalang akan diberitahu PIN ini pada peranti mereka sendiri.</div>
+              <div class="field-help">Peserta yang mendapat watak Tok Dalang akan diberitahu PIN ini pada peranti mereka sendiri. Biarkan kosong jika tidak mahu guna PIN.</div>
             </div>
             <div class="check-row">
               <input type="checkbox" id="revealDeadRole" checked />
@@ -560,6 +560,7 @@
               <button class="btn btn-primary" id="pinEnterBtn">Masuk Panel</button>
             </div>
             <div id="pinError" class="notice danger hidden" style="margin-top:12px">PIN tidak betul.</div>
+            <button class="btn btn-ghost btn-block" id="moderatorLoginBackBtn" style="margin-top:14px">Kembali</button>
           </div>
         </div>
       </section>
@@ -1209,7 +1210,7 @@
         roleOrder.forEach(role => { for(let i=0;i<counts[role];i++) roles.push(role); });
         const shuffledRoles = shuffle(roles);
         const shuffledNames = shuffle(names);
-        const pin = $("moderatorPin").value.trim() || "1234";
+        const pin = $("moderatorPin").value.trim();
         const revealDeadRole = $("revealDeadRole").checked;
         const continueAfterScammer = $("continueAfterScammer").checked;
         const personaEnabled = $("personaEnabled").checked;
@@ -1281,7 +1282,8 @@
 
           cleanupListeners();
           reuseMode = false;
-          myPlayerId = null; myPlayerData = null; game = null; modPlayers = {};
+          clearPlayerIdentity();
+          game = null; modPlayers = {};
           saveDevice({gameId});
           await showJoinScreen({skipCodeEntry:true});
         }else{
@@ -1449,7 +1451,9 @@
         $("secretIcon").textContent = def.icon;
         $("secretTitle").textContent = def.name;
         $("secretDescription").textContent = myPlayerData.role === "moderator"
-          ? `${def.description} PIN panel anda ialah ${myPlayerData.moderatorPin}. Ingat PIN ini dan jangan dedahkan kepada pemain lain.`
+          ? (myPlayerData.moderatorPin
+              ? `${def.description} PIN panel anda ialah ${myPlayerData.moderatorPin}. Ingat PIN ini dan jangan dedahkan kepada pemain lain.`
+              : `${def.description} Tiada PIN ditetapkan untuk panel ini — tekan terus "Masuk Panel" tanpa PIN.`)
           : def.description;
         $("revealRoleBtn").classList.add("hidden");
         $("hideRoleBtn").classList.remove("hidden");
@@ -1518,8 +1522,8 @@
         }
         gameId = code;
       }
-      if(!gameId || pinBuffer.length < 4){
-        $("pinError").textContent = "Masukkan kod game dan PIN penuh.";
+      if(!gameId){
+        $("pinError").textContent = "Masukkan kod game.";
         $("pinError").classList.remove("hidden");
         return;
       }
@@ -2285,6 +2289,13 @@
       if(myRoleUnsub){ myRoleUnsub(); myRoleUnsub=null; }
     }
 
+    function clearPlayerIdentity(){
+      if(myRoleUnsub){ myRoleUnsub(); myRoleUnsub=null; }
+      myPlayerId = null;
+      myPlayerData = null;
+      roleRevealed = false;
+    }
+
     async function resetGame(){
       const ok = confirm("Padam permainan ini untuk SEMUA peserta dan kembali ke halaman utama?");
       if(!ok) return;
@@ -2303,14 +2314,17 @@
         console.error(err);
       }
       cleanupListeners();
+      clearPlayerIdentity();
       clearDevice();
-      gameId = null; myPlayerId = null; game = null; modPlayers = {};
+      gameId = null; game = null; modPlayers = {};
       showScreen("homeScreen");
     }
 
     function initEvents(){
       $("newGameBtn").addEventListener("click",()=>{
         reuseMode = false;
+        gameId = null;
+        clearPlayerIdentity();
         $("reuseNotice").classList.add("hidden");
         showScreen("setupScreen");
         const names = getNames();
@@ -2318,10 +2332,12 @@
       });
       $("joinGameBtn").addEventListener("click",()=>{
         gameId = null;
+        clearPlayerIdentity();
         showJoinScreen({skipCodeEntry:false});
       });
       $("moderatorPanelHomeBtn").addEventListener("click",()=>{
         gameId = null;
+        clearPlayerIdentity();
         showModeratorLogin();
       });
       $("backHomeBtn").addEventListener("click",()=>{
@@ -2349,6 +2365,7 @@
       $("joinCodeBtn").addEventListener("click",async ()=>{
         const code = $("joinCodeInput").value.trim().toUpperCase();
         if(!code) return;
+        if(code !== gameId) clearPlayerIdentity();
         gameId = code;
         await loadPublicPlayersForJoin();
         if(!$("joinNameCard").classList.contains("hidden")) saveDevice({gameId});
@@ -2366,9 +2383,9 @@
       });
       $("openModeratorPanelBtn").addEventListener("click",()=>showModeratorLogin());
       $("roleBackHomeBtn").addEventListener("click",()=>{
-        if(myRoleUnsub){ myRoleUnsub(); myRoleUnsub=null; }
+        clearPlayerIdentity();
         clearDevice();
-        gameId=null; myPlayerId=null; myPlayerData=null;
+        gameId = null;
         showScreen("homeScreen");
       });
 
@@ -2377,6 +2394,15 @@
         updatePinDisplay();
       });
       $("pinEnterBtn").addEventListener("click",enterModeratorPanel);
+      $("moderatorLoginBackBtn").addEventListener("click",()=>{
+        if(myPlayerData){
+          renderRoleScreen();
+        }else if(gameId){
+          showJoinScreen({skipCodeEntry:true});
+        }else{
+          showScreen("homeScreen");
+        }
+      });
       $("resolveNightBtn").addEventListener("click",()=>resolveNight(false));
       $("skipNightBtn").addEventListener("click",()=>resolveNight(true));
       $("tallyVotesBtn").addEventListener("click",tallyVotes);
