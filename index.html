@@ -384,6 +384,10 @@
           </div>
         </div>
 
+        <div class="notice info hidden" id="reuseNotice" style="margin-bottom:14px">
+          Nama pemain, tetapan dan PIN telah diisi automatik daripada game sebelumnya di bilik yang sama. Anda boleh tambah atau buang nama sebelum watak diagihkan semula — kod/link bilik tidak berubah.
+        </div>
+
         <div class="grid two">
           <div class="card">
             <div class="field">
@@ -680,6 +684,11 @@
 
         <section class="tab-panel" id="settingsTab">
           <div class="card">
+            <h3>Mulakan Pusingan Baru</h3>
+            <p class="muted">Guna kod/link bilik yang sama dan senarai nama pemain sedia ada. Anda boleh tambah atau buang nama sebelum watak diagihkan semula.</p>
+            <button class="btn btn-primary btn-block" id="newRoundSameRoomBtn">🔄 Mulakan Game Baru (Bilik Sama)</button>
+          </div>
+          <div class="card">
             <h3>Tindakan Moderator</h3>
             <p class="muted">Gunakan fungsi ini dengan berhati-hati.</p>
             <div class="button-row">
@@ -909,6 +918,7 @@
     let myPlayerId = null;
     let myPlayerData = null;
     let roleRevealed = false;
+    let reuseMode = false;
     let pinBuffer = "";
 
     let game = null;
@@ -1166,6 +1176,29 @@
       return true;
     }
 
+    function tallyCurrentCounts(){
+      const counts = Object.fromEntries(roleOrder.map(r => [r,0]));
+      orderedPlayers().forEach(p=>{
+        const role = p.originalRole || p.role;
+        if(counts[role] !== undefined) counts[role]++;
+      });
+      return counts;
+    }
+
+    function startReuseSetup(){
+      if(!game) return;
+      reuseMode = true;
+      showScreen("setupScreen");
+      $("reuseNotice").classList.remove("hidden");
+      $("playerNames").value = orderedPlayers().map(p => p.name).join("\n");
+      $("moderatorPin").value = modPlayers[game.moderatorPlayerId]?.moderatorPin || "";
+      $("revealDeadRole").checked = !!game.revealDeadRole;
+      $("continueAfterScammer").checked = !!game.continueAfterScammer;
+      $("personaEnabled").checked = orderedPlayers().some(p => !!p.persona);
+      setRoleCounts(tallyCurrentCounts());
+      validateSetup();
+    }
+
     async function assignRoles(){
       if(!validateSetup()) return;
       $("assignRolesBtn").disabled = true;
@@ -1182,8 +1215,6 @@
         const personaEnabled = $("personaEnabled").checked;
 
         currentUser = currentUser || await ensureSignedIn();
-        const newGameId = await genUniqueGameId();
-        const newGameRef = db.collection("games").doc(newGameId);
 
         const playerDocs = shuffledNames.map((name,index)=>({
           id: genPlayerId(), name, role: shuffledRoles[index], order: index
@@ -1201,52 +1232,106 @@
           assignPersonas(ALPHA_PERSONAS, alphaPlayers.length).forEach((persona,i)=>personaMap[alphaPlayers[i].id]=persona);
         }
 
-        const batch = db.batch();
-        batch.set(newGameRef, {
-          moderatorName,
-          moderatorUid: null,
-          moderatorPlayerId: moderatorPlayer?.id || null,
-          hostUid: currentUser.uid,
-          createdAt: new Date().toISOString(),
-          revealDeadRole, continueAfterScammer,
-          round: 1,
-          phase: "night",
-          nightResolved: false,
-          voteResolved: false,
-          toyolUses: 0,
-          previousProtectedId: null,
-          currentNight: {wolfTargetId:"",protectedId:"",seerTargetId:"",seerResult:"",toyolTargetId:""},
-          scammerWinners: [],
-          gameWinner: null,
-          logs: [{
-            id: cryptoId(), at: new Date().toISOString(), round:1, phase:"night", type:"info",
-            message: `Permainan dimulakan dengan ${playerDocs.length} peserta. ${moderatorName} dipilih sebagai Tok Dalang.`
-          }],
-          moderatorNotes: "",
-          lastMorningScript: "",
-          lastVoteScript: ""
-        });
+        const startLog = {
+          id: cryptoId(), at: new Date().toISOString(), round:1, phase:"night", type:"info",
+          message: `${reuseMode ? "Pusingan baru" : "Permainan"} dimulakan dengan ${playerDocs.length} peserta. ${moderatorName} dipilih sebagai Tok Dalang.`
+        };
 
-        playerDocs.forEach(p=>{
-          const priv = {
-            name: p.name, role: p.role, originalRole: p.role, order: p.order,
-            claimedUid: null, alive: true, eliminatedBy: null, won: false
-          };
-          if(p.role === "moderator") priv.moderatorPin = pin;
-          if(personaMap[p.id]) priv.persona = personaMap[p.id];
-          batch.set(newGameRef.collection("players").doc(p.id), priv);
-          batch.set(newGameRef.collection("publicPlayers").doc(p.id), {
-            name: p.name, claimed: false, order: p.order
+        if(reuseMode && gameId){
+          const gameRef = gameDocRef();
+          const [oldPlayers, oldPublic] = await Promise.all([
+            gameRef.collection("players").get(),
+            gameRef.collection("publicPlayers").get()
+          ]);
+          const batch = db.batch();
+          oldPlayers.forEach(d => batch.delete(d.ref));
+          oldPublic.forEach(d => batch.delete(d.ref));
+          batch.update(gameRef, {
+            moderatorName,
+            moderatorUid: null,
+            moderatorPlayerId: moderatorPlayer?.id || null,
+            revealDeadRole, continueAfterScammer,
+            round: 1,
+            phase: "night",
+            nightResolved: false,
+            voteResolved: false,
+            toyolUses: 0,
+            previousProtectedId: null,
+            currentNight: {wolfTargetId:"",protectedId:"",seerTargetId:"",seerResult:"",toyolTargetId:""},
+            scammerWinners: [],
+            gameWinner: null,
+            logs: [startLog],
+            moderatorNotes: "",
+            lastMorningScript: "",
+            lastVoteScript: ""
           });
-        });
+          playerDocs.forEach(p=>{
+            const priv = {
+              name: p.name, role: p.role, originalRole: p.role, order: p.order,
+              claimedUid: null, alive: true, eliminatedBy: null, won: false
+            };
+            if(p.role === "moderator") priv.moderatorPin = pin;
+            if(personaMap[p.id]) priv.persona = personaMap[p.id];
+            batch.set(gameRef.collection("players").doc(p.id), priv);
+            batch.set(gameRef.collection("publicPlayers").doc(p.id), {
+              name: p.name, claimed: false, order: p.order
+            });
+          });
+          await batch.commit();
 
-        await batch.commit();
-        gameId = newGameId;
-        saveDevice({gameId});
-        showGameCreatedScreen();
+          cleanupListeners();
+          reuseMode = false;
+          myPlayerId = null; myPlayerData = null; game = null; modPlayers = {};
+          saveDevice({gameId});
+          await showJoinScreen({skipCodeEntry:true});
+        }else{
+          const newGameId = await genUniqueGameId();
+          const newGameRef = db.collection("games").doc(newGameId);
+
+          const batch = db.batch();
+          batch.set(newGameRef, {
+            moderatorName,
+            moderatorUid: null,
+            moderatorPlayerId: moderatorPlayer?.id || null,
+            hostUid: currentUser.uid,
+            createdAt: new Date().toISOString(),
+            revealDeadRole, continueAfterScammer,
+            round: 1,
+            phase: "night",
+            nightResolved: false,
+            voteResolved: false,
+            toyolUses: 0,
+            previousProtectedId: null,
+            currentNight: {wolfTargetId:"",protectedId:"",seerTargetId:"",seerResult:"",toyolTargetId:""},
+            scammerWinners: [],
+            gameWinner: null,
+            logs: [startLog],
+            moderatorNotes: "",
+            lastMorningScript: "",
+            lastVoteScript: ""
+          });
+
+          playerDocs.forEach(p=>{
+            const priv = {
+              name: p.name, role: p.role, originalRole: p.role, order: p.order,
+              claimedUid: null, alive: true, eliminatedBy: null, won: false
+            };
+            if(p.role === "moderator") priv.moderatorPin = pin;
+            if(personaMap[p.id]) priv.persona = personaMap[p.id];
+            batch.set(newGameRef.collection("players").doc(p.id), priv);
+            batch.set(newGameRef.collection("publicPlayers").doc(p.id), {
+              name: p.name, claimed: false, order: p.order
+            });
+          });
+
+          await batch.commit();
+          gameId = newGameId;
+          saveDevice({gameId});
+          showGameCreatedScreen();
+        }
       }catch(err){
         console.error(err);
-        alert("Gagal mencipta game. Sila cuba lagi.\n" + (err.message || err));
+        alert("Gagal menyimpan game. Sila cuba lagi.\n" + (err.message || err));
       }finally{
         $("assignRolesBtn").disabled = false;
       }
@@ -1728,6 +1813,11 @@
           <div class="notice success" style="margin-bottom:14px">
             🎭 Pemenang individu Scammer: <strong>${escapeHtml(names)}</strong>
           </div>
+        `);
+      }
+      if(game.gameWinner){
+        blocks.push(`
+          <button class="btn btn-primary btn-block" id="newRoundFromWinnerBtn" style="margin-bottom:14px">🔄 Mulakan Game Baru (Bilik Sama)</button>
         `);
       }
       area.innerHTML = blocks.join("");
@@ -2220,6 +2310,8 @@
 
     function initEvents(){
       $("newGameBtn").addEventListener("click",()=>{
+        reuseMode = false;
+        $("reuseNotice").classList.add("hidden");
         showScreen("setupScreen");
         const names = getNames();
         if(!names.length) setRoleCounts(suggestedCounts(8));
@@ -2232,7 +2324,15 @@
         gameId = null;
         showModeratorLogin();
       });
-      $("backHomeBtn").addEventListener("click",()=>showScreen("homeScreen"));
+      $("backHomeBtn").addEventListener("click",()=>{
+        if(reuseMode){
+          reuseMode = false;
+          $("reuseNotice").classList.add("hidden");
+          showScreen("moderatorScreen");
+        }else{
+          showScreen("homeScreen");
+        }
+      });
       $("playerNames").addEventListener("input",()=>{
         validateSetup();
       });
@@ -2302,6 +2402,10 @@
         renderPinPad();
       });
       $("resetGameBtn").addEventListener("click",resetGame);
+      $("newRoundSameRoomBtn").addEventListener("click",startReuseSetup);
+      $("winnerArea").addEventListener("click",e=>{
+        if(e.target.closest("#newRoundFromWinnerBtn")) startReuseSetup();
+      });
 
       $("moderatorTabs").addEventListener("click",e=>{
         const tab = e.target.closest(".tab");
