@@ -674,7 +674,8 @@
       </div>
       <div style="font-size:48px" id="roleInfoIcon">🔮</div>
       <span class="role-badge" id="roleInfoTeam" style="margin:10px 0 14px;display:inline-flex"></span>
-      <p id="roleInfoDescription" style="line-height:1.6;color:#39443F;margin:0"></p>
+      <p id="roleInfoDescription" style="line-height:1.6;color:#39443F;margin:0 0 14px"></p>
+      <div class="notice info" id="roleInfoExample"></div>
     </div>
   </div>
 
@@ -735,63 +736,72 @@
         icon: "🎙️",
         team: "moderator",
         short: "Mengendalikan game, membaca skrip dan menentukan keputusan.",
-        description: "Moderator tidak bermain dan tidak boleh diundi. Moderator mengagihkan watak, memanggil setiap peranan, mengira undian dan mengumumkan keputusan."
+        description: "Moderator tidak bermain dan tidak boleh diundi. Moderator mengagihkan watak, memanggil setiap peranan, mengira undian dan mengumumkan keputusan.",
+        example: "Contoh: Semasa fasa malam, anda memanggil \"Harimau Jadian, buka mata\", tunggu mereka pilih mangsa secara senyap, kemudian suruh mereka tutup mata semula sebelum memanggil peranan seterusnya."
       },
       mayor: {
         name: "Penghulu Kampung",
         icon: "🧑‍⚖️",
         team: "village",
         short: "Undian bernilai 2 mata.",
-        description: "Anda ialah Penghulu Kampung. Semasa undian siang, undian anda dikira sebagai 2 mata."
+        description: "Anda ialah Penghulu Kampung. Semasa undian siang, undian anda dikira sebagai 2 mata.",
+        example: "Contoh: Semasa undian, anda mengundi Ali. Undian anda disenaraikan Tok Dalang sebagai 2 mata untuk Ali, bukan 1 mata seperti pemain lain."
       },
       scammer: {
         name: "Scammer",
         icon: "🎭",
         team: "neutral",
         short: "Menang jika disingkirkan melalui undian.",
-        description: "Objektif anda ialah meyakinkan penduduk supaya mengundi dan menyingkirkan anda. Jika itu berlaku, anda menang secara individu."
+        description: "Objektif anda ialah meyakinkan penduduk supaya mengundi dan menyingkirkan anda. Jika itu berlaku, anda menang secara individu.",
+        example: "Contoh: Anda sengaja bercakap mencurigakan atau menuduh diri sendiri secara halus supaya pemain lain hilang sabar dan mengundi anda keluar semasa undian siang."
       },
       toyol: {
         name: "Toyol",
         icon: "👺",
         team: "dynamic",
         short: "Curi dan tukar watak, maksimum 1 kali.",
-        description: "Pada waktu malam, anda boleh menukar watak dengan seorang pemain lain. Kuasa Toyol hanya boleh digunakan 1 kali sepanjang permainan."
+        description: "Pada waktu malam, anda boleh menukar watak dengan seorang pemain lain. Kuasa Toyol hanya boleh digunakan 1 kali sepanjang permainan.",
+        example: "Contoh: Malam pertama anda memilih Siti sebagai sasaran. Selepas itu anda menjadi watak asal Siti dan Siti pula menjadi Toyol — kuasa tukar watak ini tidak boleh digunakan lagi selepas itu."
       },
       seer: {
         name: "Pawang",
         icon: "🔮",
         team: "village",
         short: "Periksa seorang pemain setiap malam.",
-        description: "Setiap malam, pilih seorang pemain untuk diperiksa. Ketua Harimau Jadian akan kelihatan sebagai Orang Kampung."
+        description: "Setiap malam, pilih seorang pemain untuk diperiksa. Ketua Harimau Jadian akan kelihatan sebagai Orang Kampung.",
+        example: "Contoh: Anda memeriksa Kumar. Jika Kumar ialah Harimau Jadian biasa, Tok Dalang beritahu anda \"Harimau Jadian\". Tetapi jika Kumar ialah Ketua Harimau Jadian, Tok Dalang akan beritahu anda \"Orang Kampung\" — jadi keputusan anda boleh tersilap untuk Ketua Harimau."
       },
       doctor: {
         name: "Nurse",
         icon: "🩺",
         team: "village",
         short: "Lindungi seorang pemain daripada serangan.",
-        description: "Setiap malam, lindungi seorang pemain. Anda tidak boleh melindungi pemain yang sama dua malam berturut-turut."
+        description: "Setiap malam, lindungi seorang pemain. Anda tidak boleh melindungi pemain yang sama dua malam berturut-turut.",
+        example: "Contoh: Malam ini anda melindungi Farah. Jika Harimau menyerang Farah malam itu, dia selamat. Tetapi malam seterusnya anda tidak boleh pilih Farah lagi — perlu pilih pemain lain."
       },
       villager: {
         name: "Orang Kampung",
         icon: "🧑‍🌾",
         team: "village",
         short: "Bincang, siasat dan singkirkan Harimau.",
-        description: "Anda tiada kuasa malam. Gunakan pemerhatian, perbincangan dan undian untuk mencari Harimau Jadian."
+        description: "Anda tiada kuasa malam. Gunakan pemerhatian, perbincangan dan undian untuk mencari Harimau Jadian.",
+        example: "Contoh: Semasa siang, anda perasan cerita Wan berubah-ubah semasa disoal. Anda kongsikan pemerhatian itu dengan pemain lain dan cadangkan supaya semua mengundi Wan."
       },
       werewolf: {
         name: "Harimau Jadian",
         icon: "🐺",
         team: "wolf",
         short: "Pilih seorang mangsa setiap malam.",
-        description: "Anda menyamar sebagai penduduk. Bekerjasama dengan kumpulan Harimau untuk memilih seorang mangsa setiap malam."
+        description: "Anda menyamar sebagai penduduk. Bekerjasama dengan kumpulan Harimau untuk memilih seorang mangsa setiap malam.",
+        example: "Contoh: Semasa fasa malam, anda dan Harimau lain buka mata serentak dan tunjuk isyarat tangan/mata secara senyap untuk sepakat memilih Mei Ling sebagai mangsa."
       },
       alpha: {
         name: "Ketua Harimau Jadian",
         icon: "🐺",
         team: "wolf",
         short: "Kelihatan sebagai Orang Kampung kepada Pawang.",
-        description: "Anda mengetuai kumpulan Harimau. Apabila diperiksa oleh Pawang, keputusan anda ialah Orang Kampung."
+        description: "Anda mengetuai kumpulan Harimau. Apabila diperiksa oleh Pawang, keputusan anda ialah Orang Kampung.",
+        example: "Contoh: Anda memilih mangsa bersama Harimau lain seperti biasa. Jika Pawang memeriksa anda malam itu, Tok Dalang akan umumkan keputusan sebagai \"Orang Kampung\", bukan \"Harimau Jadian\" — jadi anda lebih sukar disyaki."
       }
     };
 
@@ -932,6 +942,8 @@
       $("roleInfoIcon").textContent = def.icon;
       $("roleInfoTeam").textContent = teamLabel(def.team);
       $("roleInfoDescription").textContent = def.description;
+      $("roleInfoExample").textContent = def.example || "";
+      $("roleInfoExample").classList.toggle("hidden", !def.example);
       $("roleInfoModal").classList.add("open");
       $("roleInfoModal").setAttribute("aria-hidden","false");
     }
