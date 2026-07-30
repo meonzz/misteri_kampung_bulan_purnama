@@ -423,7 +423,7 @@
               <input type="checkbox" id="personaEnabled" checked />
               <div>
                 <strong>Aktifkan Persona Gaya Perbualan</strong>
-                <div class="field-help">Setiap pemain menerima satu gaya perbualan rawak (dengan contoh ayat) untuk buatkan perbincangan lebih menarik. Harimau Jadian dan Ketua Harimau mendapat persona khusus.</div>
+                <div class="field-help">Setiap pemain (kecuali Tok Dalang) menerima satu watak/gaya perbualan rawak (dengan contoh ayat) untuk buatkan perbincangan lebih menarik.</div>
               </div>
             </div>
           </div>
@@ -746,7 +746,7 @@
         <li>Peserta yang mendapat watak Tok Dalang akan diberitahu PIN dan boleh membuka Panel Tok Dalang.</li>
         <li>Tok Dalang menjalankan fasa malam, mengumumkan pagi dan mengendalikan undian siang.</li>
         <li>Penghulu mempunyai undian 2 mata. Scammer menang jika disingkirkan melalui undian.</li>
-        <li>Pawang melihat Ketua Harimau sebagai Orang Kampung. Toyol boleh menukar watak sekali sahaja.</li>
+        <li>Pawang melihat Ketua Harimau sebagai Orang Kampung. Toyol boleh mencuri watak pemain lain sekali sahaja — pemain asal tidak hilang watak mereka.</li>
         <li>Nurse melindungi seorang pemain dan tidak boleh melindungi sasaran sama dua malam berturut-turut.</li>
       </ol>
     </div>
@@ -807,9 +807,9 @@
         name: "Toyol (Thief)",
         icon: "👺",
         team: "dynamic",
-        short: "Curi dan tukar watak, maksimum 1 kali.",
-        description: "Pada waktu malam, anda boleh menukar watak dengan seorang pemain lain. Kuasa Toyol hanya boleh digunakan 1 kali sepanjang permainan.",
-        example: "Contoh: Malam pertama anda memilih Siti sebagai sasaran. Selepas itu anda menjadi watak asal Siti dan Siti pula menjadi Toyol — kuasa tukar watak ini tidak boleh digunakan lagi selepas itu."
+        short: "Curi watak pemain lain, maksimum 1 kali.",
+        description: "Pada waktu malam, anda boleh mencuri watak seorang pemain lain — anda akan menjadi watak itu, tetapi pemain asal TIDAK hilang watak mereka. Kuasa Toyol hanya boleh digunakan 1 kali sepanjang permainan.",
+        example: "Contoh: Malam pertama anda memilih Siti (Pawang) sebagai sasaran. Selepas itu anda menjadi Pawang juga, dan Siti kekal sebagai Pawang seperti asal — kini ada dua Pawang. Kuasa curi watak ini tidak boleh digunakan lagi selepas itu."
       },
       seer: {
         name: "Pawang (Seer)",
@@ -853,58 +853,28 @@
       }
     };
 
-    const GENERAL_PERSONAS = [
-      {name:"Bekas Setiausaha Persatuan", description:"Sentiasa mengingati perkara yang disebut dalam perbincangan sebelumnya dan akan membetulkan kenyataan yang tidak konsisten.", example:"“Semalam awak kata awak percaya Amir. Kenapa hari ini cerita awak berubah?”"},
-      {name:"Pekerja Yang Mahu Balik Awal", description:"Tidak suka perbincangan terlalu panjang dan sentiasa mahu keputusan dibuat dengan cepat.", example:"“Kita dah bincang lama. Pilih seorang dan teruskan.”"},
-      {name:"Pemerhati Bahasa Badan", description:"Kurang berminat dengan isi hujah. Lebih fokus kepada cara pemain duduk, ketawa, mengelak pandangan atau kelihatan gugup.", example:"“Saya tak kisah sangat apa awak cakap. Tapi kenapa awak senyum masa nama Harimau disebut?”"},
-      {name:"Pencatat Tidak Rasmi", description:"Mencatat siapa menuduh siapa, keputusan undian dan perubahan pendirian setiap pemain.", example:"“Untuk rekod, tiga orang yang mempertahankan dia semalam sekarang menuduh dia.”"},
-      {name:"Pencari Konsensus", description:"Tidak mahu membuat keputusan sehingga majoriti pemain mempunyai pendapat yang hampir sama.", example:"“Kita dengar semua orang dahulu. Lepas itu baru kita tentukan calon bersama.”"},
-      {name:"Anti-Majoriti", description:"Secara semula jadi mencurigai keputusan yang terlalu mudah diterima oleh semua orang.", example:"“Kenapa semua orang terlalu cepat bersetuju? Mungkin kita sedang diarahkan.”"},
-      {name:"Penganalisis Risiko", description:"Melihat setiap keputusan berdasarkan risiko paling buruk kepada kampung.", example:"“Kalau dia Orang Kampung, apa kerugian kita? Kalau dia Harimau, apa manfaat kita?”"},
-      {name:"Penjaga Reputasi", description:"Sangat mengambil berat tentang pandangan orang terhadap dirinya dan akan cuba kelihatan konsisten serta boleh dipercayai.", example:"“Saya tak ubah pendirian sebab saya tak mahu orang fikir saya cuba selamatkan diri.”"},
-      {name:"Tukang Uji Cerita", description:"Suka meminta pemain mengulangi cerita dengan susunan atau ayat yang berbeza untuk mencari percanggahan.", example:"“Cuba cerita semula dari awal, tapi kali ini ikut urutan siapa bercakap dahulu.”"},
-      {name:"Pendengar Senyap", description:"Jarang bercakap pada awal perbincangan, tetapi akan memberikan rumusan tajam sebelum undian.", example:"“Saya diam sebab saya nak dengar. Sekarang saya rasa ada dua cerita yang tidak sepadan.”"},
-      {name:"Peguam Tanpa Pelantikan", description:"Akan mempertahankan pemain yang tidak diberi peluang bercakap, walaupun belum tentu mempercayai mereka.", example:"“Beri dia peluang jawab dahulu. Jangan hukum hanya sebab semua orang sedang menyerang.”"},
-      {name:"Pemburu Motif", description:"Tidak hanya bertanya siapa yang menipu, tetapi siapa yang mendapat manfaat daripada sesuatu tuduhan atau undian.", example:"“Siapa paling untung kalau kita singkirkan dia malam ini?”"},
-      {name:"Penguji Kesetiaan", description:"Suka meminta pemain memilih antara dua orang bagi melihat siapa yang mereka sanggup korbankan.", example:"“Kalau pilihan hanya antara Farah dan Hakim, siapa awak akan undi?”"},
-      {name:"Pengurus Masa", description:"Membahagikan perbincangan kepada beberapa bahagian dan menetapkan masa untuk setiap calon.", example:"“Kita beri dua minit untuk bincang Ali, kemudian dua minit untuk bincang Siti.”"},
-      {name:"Penyimpan Maklumat", description:"Mengetahui atau mengesyaki sesuatu tetapi tidak mendedahkannya serta-merta. Menunggu masa yang memberi kesan paling besar.", example:"“Saya ada satu maklumat, tapi saya mahu dengar jawapan dia dahulu.”"},
-      {name:"Pembaca Corak Undian", description:"Menilai pemain berdasarkan siapa yang mereka undi, bukan berdasarkan apa yang mereka katakan.", example:"“Percakapan boleh dibuat-buat. Tapi corak undian tiga pusingan ini lebih jelas.”"},
-      {name:"Pengesah Fakta", description:"Akan meminta pemain membezakan antara fakta, andaian dan perasaan.", example:"“Itu bukti atau sekadar awak rasa dia mencurigakan?”"},
-      {name:"Pencetus Keputusan Sukar", description:"Suka memberikan pilihan yang tidak selesa untuk memaksa pemain menunjukkan pendirian sebenar.", example:"“Awak tak boleh kata kedua-duanya selamat. Pilih seorang yang lebih mencurigakan.”"},
-      {name:"Penilai Perubahan Sikap", description:"Memerhatikan siapa yang menjadi lebih aktif, lebih senyap atau lebih agresif selepas sesuatu kejadian.", example:"“Selepas Amir tersingkir, awak tiba-tiba banyak bercakap. Kenapa?”"},
-      {name:"Perunding Sulit", description:"Suka mengajak seorang pemain bekerjasama secara terbuka dan melihat reaksi pemain lain terhadap pakatan tersebut.", example:"“Saya akan percaya awak untuk satu pusingan. Tapi awak kena sokong siasatan saya.”"},
-      {name:"Penentang Tuduhan Peribadi", description:"Tidak suka hujah berdasarkan hubungan, personaliti sebenar atau populariti di luar permainan.", example:"“Jangan kata dia tak mungkin menipu sebab dia kawan awak. Fokus kepada apa yang berlaku dalam game.”"},
-      {name:"Penguji Keyakinan", description:"Meminta setiap pemain memberikan tahap keyakinan dalam bentuk peratusan.", example:"“Awak kata dia Harimau. Awak yakin 55 peratus atau 95 peratus?”"},
-      {name:"Penjaga Undian Terakhir", description:"Enggan mendedahkan pilihan terlalu awal kerana tidak mahu undiannya mempengaruhi orang lain.", example:"“Saya akan umumkan pilihan selepas semua orang beri pendapat.”"},
-      {name:"Penghubung Maklumat", description:"Menggabungkan kenyataan beberapa pemain menjadi satu teori, walaupun maklumat itu datang daripada pihak berbeza.", example:"“Cerita Aina, undian Daniel dan perubahan pendirian Zaki mungkin berkaitan.”"},
-      {name:"Penyemak Keputusan", description:"Selepas seseorang disingkirkan, dia akan menilai semula siapa yang memulakan tuduhan, siapa yang menyokong dan siapa yang cuba menghentikannya.", example:"“Sekarang kita dah tahu hasilnya. Mari tengok siapa yang paling kuat mengarahkan undian tadi.”"}
-    ];
-
-    const WOLF_PERSONAS = [
-      {name:"Penyokong Saat Akhir", description:"Jarang memulakan tuduhan. Dia menunggu calon yang hampir mendapat majoriti sebelum menyokongnya.", example:"“Saya pada awalnya tak pasti, tapi selepas dengar semua hujah, saya rasa dia memang paling mencurigakan.”"},
-      {name:"Pencipta Pilihan Ketiga", description:"Apabila rakannya hampir diundi, dia memperkenalkan suspek baharu untuk memecahkan undian.", example:"“Kenapa kita hanya fokus kepada mereka berdua? Kita langsung tak bincang tentang Farid.”"},
-      {name:"Pembela Bersyarat", description:"Mempertahankan pemain lain dengan berhati-hati supaya kelihatan adil, tetapi boleh menarik balik sokongan bila perlu.", example:"“Saya bukan kata dia bersih. Cuma bukti terhadap dia masih terlalu lemah.”"},
-      {name:"Pemilik Teori Separuh Betul", description:"Membina teori yang mengandungi beberapa fakta sebenar, kemudian menyelitkan kesimpulan palsu.", example:"“Betul, Amir memang ubah undian. Tetapi saya rasa itu sebab dia bekerjasama dengan Siti.”"},
-      {name:"Pengikut Berprinsip", description:"Sentiasa mendakwa hanya mengikut bukti dan tidak mahu membuat tuduhan tanpa alasan.", example:"“Saya tak akan undi berdasarkan perasaan. Berikan saya satu percanggahan yang jelas.”"},
-      {name:"Pemecah Pakatan", description:"Cuba membuat dua pemain yang saling mempercayai mula mencurigai satu sama lain.", example:"“Awak yakin dia percaya awak? Sebab tadi dia hampir mengundi awak.”"},
-      {name:"Pemain Yang Sengaja Tersilap", description:"Sesekali membuat kesilapan kecil supaya kelihatan seperti pemain biasa yang tidak mengetahui semua perkara.", example:"“Eh, saya ingat dia undi Hakim semalam. Maaf, mungkin saya tersalah ingat.”"},
-      {name:"Penyiasat Palsu", description:"Banyak bertanya dan mencatat supaya kelihatan seperti benar-benar mencari Harimau.", example:"“Semua orang jawab satu soalan: siapa suspek utama kamu dan kenapa?”"},
-      {name:"Penjaga Suasana", description:"Cuba menenangkan pergaduhan dan kelihatan seperti pemain yang mementingkan kumpulan.", example:"“Kita jangan serang peribadi. Kita perlukan maklumat, bukan gaduh.”"},
-      {name:"Pengorbanan Terkawal", description:"Sanggup kelihatan mencurigakan atau menerima undian bagi melindungi Ketua Harimau yang lebih penting.", example:"“Kalau semua memang yakin saya bersalah, undilah saya. Tapi selepas itu periksa siapa yang mengarahkan tuduhan ini.”"}
-    ];
-
-    const ALPHA_PERSONAS = [
-      {name:"Pusat Rujukan Kampung", description:"Menjadi pemain yang sering diminta membuat rumusan dan menentukan arah perbincangan.", example:"“Daripada semua yang kita dengar, ada tiga percanggahan utama yang perlu kita selesaikan.”"},
-      {name:"Pemimpin Tanpa Gelaran", description:"Tidak mengarahkan orang secara terang-terangan, tetapi membentuk soalan supaya pemain lain mengikuti teorinya.", example:"“Saya tak suruh kamu undi sesiapa. Saya cuma mahu tahu kenapa ceritanya berubah.”"},
-      {name:"Sasaran Selamat Pawang", description:"Bermain cukup mencurigakan untuk diperiksa oleh Pawang, kemudian menggunakan keputusan “Orang Kampung” sebagai perlindungan.", example:"“Kalau Pawang betul-betul ragu, periksa saya malam ini.”"},
-      {name:"Pengurus Persepsi", description:"Menentukan siapa yang kelihatan berbahaya, bukan semestinya siapa yang paling banyak bukti terhadapnya.", example:"“Saya bukan kata dia Harimau, tetapi cara dia mengawal perbincangan boleh membahayakan kampung.”"},
-      {name:"Pengorban Rakan", description:"Sanggup menuduh Harimau biasa apabila rakannya sudah sukar diselamatkan untuk membina kepercayaan.", example:"“Saya cuba beri dia peluang, tapi jawapannya memang tidak konsisten. Saya akan undi dia.”"},
-      {name:"Pemilik Memori Terpilih", description:"Mengingati perkara yang membantu teorinya dan berpura-pura tidak pasti tentang perkara yang merugikan kumpulannya.", example:"“Saya ingat dia mempertahankan Amir, tetapi saya tak pasti siapa yang mulakan tuduhan.”"},
-      {name:"Pengesah Pendapat", description:"Membuat pemain merasakan teori mereka sendiri membawa kepada keputusan yang sebenarnya dikehendakinya.", example:"“Teori awak masuk akal. Berdasarkan teori itu, siapa pemain kedua yang paling mencurigakan?”"},
-      {name:"Penyelamat Yang Dipercayai", description:"Sesekali mempertahankan Orang Kampung yang hampir tersingkir supaya mendapat kesetiaan pemain tersebut.", example:"“Saya rasa kita terlalu cepat menyerang dia. Beri dia satu pusingan lagi.”"},
-      {name:"Penentu Tempo", description:"Mempercepatkan undian apabila kumpulannya selamat dan melambatkannya apabila rakannya berada dalam bahaya.", example:"“Kita sudah ada cukup maklumat. Lebih lama kita bincang, lebih banyak kita akan keliru.”"},
-      {name:"Pemain Dua Lapisan", description:"Di permukaan kelihatan neutral dan rasional, tetapi secara halus memastikan suspek sentiasa menjauh daripada kumpulan Harimau.", example:"“Saya belum percaya sesiapa sepenuhnya, tetapi sekarang saya rasa kita patut fokus kepada dua pemain ini dahulu.”"}
+    const PERSONAS = [
+      {name:"Sombong", description:"Anda rasa diri paling bijak dan paling betul dalam apa jua situasi. Pandang rendah pada pendapat orang lain.", example:"“Saya dah agak dari awal lagi. Kamu semua ni memang tak pandai baca situasi.”"},
+      {name:"Pendatang Asing", description:"Berlakon seperti baru berpindah ke kampung ini dan kurang faham selokoh atau adat tempatan. Sering tersalah faham perbualan.", example:"“Maaf, saya kurang faham. Di negara saya, kalau macam ni bukan salah dia punya.”"},
+      {name:"Seorang Kelantan", description:"Bercakap dengan loghat Kelantan sepanjang perbincangan — tukar 'saya' jadi 'ambo/saye', 'awak' jadi 'demo', dan gaya sebutan khas Kelantan.", example:"“Ambo tak caye la demo ni. Cakap betul-betul sikit, jange lawok.”"},
+      {name:"Bimbo", description:"Berlagak lurus, kurang perasan dengan hal-hal serius dan sering tertanya soalan yang tidak berkaitan dengan topik.", example:"“Eh sorry, tadi cakap pasal Harimau ke? Saya baru perasan warna baju awak comel.”"},
+      {name:"Mabuk", description:"Berlakon seperti separuh mabuk — bercakap sedikit celaru, ketawa sendiri dan kadang hilang fokus perbualan.", example:"“Eh... korang cakap pasal apa tadi? Owh Harimau. Haha, saya... saya okay je ni.”"},
+      {name:"Baran", description:"Cepat naik marah bila diri dituduh atau dipersoal. Bercakap kuat dan agresif.", example:"“Woi! Jangan tuduh-tuduh kalau tak ada bukti! Saya boleh naik panas ni!”"},
+      {name:"Blur", description:"Nampak keliru sepanjang masa, lambat faham perbincangan dan sering minta orang ulang cakap.", example:"“Eh... tunggu, siapa yang kena undi? Saya tertinggal bahagian tu.”"},
+      {name:"Happy Go Lucky", description:"Sentiasa positif dan gembira walau apa pun berlaku. Tidak ambil pusing tuduhan atau ketegangan.", example:"“Takpe la, kalau saya kena undi pun saya redha je. Jom sambung game!”"},
+      {name:"Orang Kaya", description:"Berlagak mewah dan sering mengaitkan perbincangan dengan harta atau status. Memandang rendah cara pemain lain berhujah.", example:"“Kalau di rumah saya, benda kecil macam ni kitorang settle dalam lima minit je.”"},
+      {name:"Sentap", description:"Cepat rasa tersinggung dengan kata-kata orang dan suka merungut atau diam-diam merajuk selepas dikritik.", example:"“Fine. Kalau korang rasa saya Harimau, tak payah dengar cakap saya lagi lepas ni.”"},
+      {name:"Pelupa", description:"Sering terlupa apa yang baru disebut atau siapa berkata apa, dan perlu tanya semula secara kerap.", example:"“Eh saya cakap apa tadi ek? Alamak, saya dah lupa sebab siapa saya nak undi.”"},
+      {name:"Jujur", description:"Sentiasa cakap benar tentang apa yang difikirkan, walaupun ia menyakitkan hati atau menimbulkan syak.", example:"“Terus terang, saya memang syak awak dari mula lagi. Saya tak nak berpura-pura.”"},
+      {name:"Pemalu", description:"Bercakap perlahan, kurang yakin dan elak menjadi pusat perhatian semasa perbincangan.", example:"“Um... saya rasa... entahlah, mungkin dia. Tapi saya tak pasti sangat.”"},
+      {name:"Kaki Viral", description:"Berlagak seperti sedang dirakam untuk media sosial. Suka buat gaya dramatik dan sebut-sebut 'content' atau 'viral'.", example:"“Wah moment ni power gila, boleh jadi content ni. Followers saya confirm suka drama ni!”"},
+      {name:"Jenis Seorang Menyanyi", description:"Suka menjawab atau menyampuk dengan gaya bernyanyi atau berlagu-lagu, walaupun dalam situasi serius.", example:"“~ Sayaaa rasa dia Harimauuu~ jangan tanya kenapa~ perasaan sahaja~ ~”"},
+      {name:"Pak Ustaz/Ustazah", description:"Bercakap dengan gaya bernasihat dan penuh petua, sering mengaitkan situasi dengan pengajaran moral.", example:"“Ingatlah saudara-saudara, dalam hidup ni jangan cepat menuduh tanpa usul periksa.”"},
+      {name:"Pondan", description:"Berlakon dengan gaya bercakap yang lebih dramatik, manja dan flamboyan berbanding biasa — banyak gaya tangan dan nada suara yang melambung.", example:"“Aiyoo jangan la macam tu kat akak, akak tak buat apa pun malam tadi!”"},
+      {name:"Bisu", description:"Tidak bercakap langsung sepanjang perbincangan siang — hanya boleh guna gerak tangan, muka atau tulisan untuk sampaikan maksud.", example:"(Hanya menggunakan isyarat tangan menunjuk ke arah pemain yang disyaki, tanpa sepatah kata.)"},
+      {name:"Rasis", description:"Berlakon seseorang yang suka membuat generalisasi melampau tentang kumpulan orang secara bergurau — dibuat abstrak dan tidak menyasarkan sesiapa sebenar, sekadar untuk kelihatan janggal dan mencurigakan.", example:"“Mesti orang dari kawasan tu memang macam ni, saya dah biasa nampak.”"},
+      {name:"Cakap Laju", description:"Bercakap dengan pantas dan tergesa-gesa, kadang sukar difahami sebab terlalu laju.", example:"“Okaysayarasadiaharimausebabsemalamdiapelikgilaokaynext!”"},
+      {name:"Sedih", description:"Berlakon seperti sentiasa murung dan sedih sepanjang perbincangan, walau apa jua topik yang dibincangkan.", example:"“(sambil mengeluh) ...entahlah, kadang saya rasa hidup ni memang macam ni je. Jom undi siapa-siapa pun boleh.”"}
     ];
 
     const roleOrder = ["moderator","mayor","scammer","toyol","seer","doctor","alpha","werewolf","villager"];
@@ -1225,12 +1195,8 @@
 
         const personaMap = {};
         if(personaEnabled){
-          const generalPlayers = playerDocs.filter(p => !["moderator","werewolf","alpha"].includes(p.role));
-          const wolfPlayers = playerDocs.filter(p => p.role === "werewolf");
-          const alphaPlayers = playerDocs.filter(p => p.role === "alpha");
-          assignPersonas(GENERAL_PERSONAS, generalPlayers.length).forEach((persona,i)=>personaMap[generalPlayers[i].id]=persona);
-          assignPersonas(WOLF_PERSONAS, wolfPlayers.length).forEach((persona,i)=>personaMap[wolfPlayers[i].id]=persona);
-          assignPersonas(ALPHA_PERSONAS, alphaPlayers.length).forEach((persona,i)=>personaMap[alphaPlayers[i].id]=persona);
+          const personaPlayers = playerDocs.filter(p => p.role !== "moderator");
+          assignPersonas(PERSONAS, personaPlayers.length).forEach((persona,i)=>personaMap[personaPlayers[i].id]=persona);
         }
 
         const startLog = {
@@ -1257,8 +1223,8 @@
             nightResolved: false,
             voteResolved: false,
             toyolUses: 0,
-            previousProtectedId: null,
-            currentNight: {wolfTargetId:"",protectedId:"",seerTargetId:"",seerResult:"",toyolTargetId:""},
+            previousProtections: {},
+            currentNight: {wolfTargetId:"",toyolTargetId:"",protections:{},seerChecks:{}},
             scammerWinners: [],
             gameWinner: null,
             logs: [startLog],
@@ -1303,8 +1269,8 @@
             nightResolved: false,
             voteResolved: false,
             toyolUses: 0,
-            previousProtectedId: null,
-            currentNight: {wolfTargetId:"",protectedId:"",seerTargetId:"",seerResult:"",toyolTargetId:""},
+            previousProtections: {},
+            currentNight: {wolfTargetId:"",toyolTargetId:"",protections:{},seerChecks:{}},
             scammerWinners: [],
             gameWinner: null,
             logs: [startLog],
@@ -1654,7 +1620,7 @@
           "Pawang, sila buka mata. Pilih seorang pemain untuk diperiksa.",
           "Pawang, sila tutup mata.",
           game.toyolUses < 2
-            ? `Toyol, sila buka mata. Anda boleh memilih seorang pemain untuk ditukar watak. Baki kuasa: ${2-game.toyolUses} kali.`
+            ? `Toyol, sila buka mata. Anda boleh memilih seorang pemain untuk dicuri wataknya. Baki kuasa: ${2-game.toyolUses} kali.`
             : "Kuasa Toyol telah habis dan tidak akan dipanggil lagi.",
           "Toyol, sila tutup mata.",
           "Malam telah berakhir. Semua pemain, sila buka mata."
@@ -1700,7 +1666,7 @@
             "Nurse, tutup mata.",
             "Pawang, buka mata dan pilih seorang pemain untuk diperiksa.",
             "Pawang, tutup mata.",
-            "Toyol, buka mata. Pilih sasaran jika mahu menggunakan kuasa pertukaran watak.",
+            "Toyol, buka mata. Pilih sasaran jika mahu menggunakan kuasa curi watak.",
             "Toyol, tutup mata.",
             "Malam telah berakhir. Semua pemain, buka mata."
           ].join("\n")
@@ -1865,14 +1831,18 @@
       const alive = getAlivePlayers();
       const wolves = alive.filter(p => isWolfRole(p.role));
       const wolfTargets = alive.filter(p => !isWolfRole(p.role));
-      const nurse = alive.find(p => p.role === "doctor");
-      const seer = alive.find(p => p.role === "seer");
+      const nurses = alive.filter(p => p.role === "doctor");
+      const seers = alive.filter(p => p.role === "seer");
       const toyol = alive.find(p => p.role === "toyol");
       const nightDisabled = game.phase !== "night" || game.nightResolved || !!game.gameWinner;
 
       $("nightLockedNotice").classList.toggle("hidden", !nightDisabled);
       $("resolveNightBtn").disabled = nightDisabled;
       $("skipNightBtn").disabled = nightDisabled;
+
+      if(!game.currentNight.protections) game.currentNight.protections = {};
+      if(!game.currentNight.seerChecks) game.currentNight.seerChecks = {};
+      if(!game.previousProtections) game.previousProtections = {};
 
       const wolfCard = `
         <article class="action-card">
@@ -1885,29 +1855,45 @@
         </article>
       `;
 
-      const nurseTargets = nurse ? alive.filter(p => p.id !== game.previousProtectedId) : [];
-      const nurseCard = `
+      const nurseCards = nurses.length ? nurses.map(nurse=>{
+        const prevTarget = game.previousProtections[nurse.id];
+        const nurseTargets = alive.filter(p => p.id !== prevTarget);
+        return `
+          <article class="action-card">
+            <h3>🩺 Perlindungan Nurse${nurses.length>1 ? ` · ${escapeHtml(nurse.name)}` : ""}</h3>
+            <p>Aktif: ${escapeHtml(nurse.name)}</p>
+            <label>Pemain dilindungi</label>
+            <select data-nurse-id="${nurse.id}" ${nightDisabled ? "disabled" : ""}>
+              ${optionList(nurseTargets,game.currentNight.protections[nurse.id]||"","Pilih pemain")}
+            </select>
+            ${prevTarget ? `<div class="action-result">Tidak boleh melindungi ${escapeHtml(getPlayerObj(prevTarget)?.name || "pemain sebelumnya")} dua malam berturut-turut.</div>` : ""}
+          </article>
+        `;
+      }).join("") : `
         <article class="action-card">
           <h3>🩺 Perlindungan Nurse</h3>
-          <p>${nurse ? `Aktif: ${escapeHtml(nurse.name)}` : "Nurse tiada atau telah tersingkir."}</p>
-          <label>Pemain dilindungi</label>
-          <select id="protectedSelect" ${nightDisabled || !nurse ? "disabled" : ""}>
-            ${optionList(nurseTargets,game.currentNight.protectedId,"Pilih pemain")}
-          </select>
-          ${game.previousProtectedId ? `<div class="action-result">Tidak boleh melindungi ${escapeHtml(getPlayerObj(game.previousProtectedId)?.name || "pemain sebelumnya")} dua malam berturut-turut.</div>` : ""}
+          <p>Nurse tiada atau telah tersingkir.</p>
         </article>
       `;
 
-      const seerTargets = seer ? alive.filter(p => p.id !== seer.id) : [];
-      const seerCard = `
+      const seerCards = seers.length ? seers.map(seer=>{
+        const seerTargets = alive.filter(p => p.id !== seer.id);
+        const check = game.currentNight.seerChecks[seer.id];
+        return `
+          <article class="action-card">
+            <h3>🔮 Pemeriksaan Pawang${seers.length>1 ? ` · ${escapeHtml(seer.name)}` : ""}</h3>
+            <p>Aktif: ${escapeHtml(seer.name)}</p>
+            <label>Pemain diperiksa</label>
+            <select data-seer-id="${seer.id}" ${nightDisabled ? "disabled" : ""}>
+              ${optionList(seerTargets,check?.targetId||"","Pilih pemain")}
+            </select>
+            ${check?.result ? `<div class="action-result">${escapeHtml(check.result)}</div>` : ""}
+          </article>
+        `;
+      }).join("") : `
         <article class="action-card">
           <h3>🔮 Pemeriksaan Pawang</h3>
-          <p>${seer ? `Aktif: ${escapeHtml(seer.name)}` : "Pawang tiada atau telah tersingkir."}</p>
-          <label>Pemain diperiksa</label>
-          <select id="seerTargetSelect" ${nightDisabled || !seer ? "disabled" : ""}>
-            ${optionList(seerTargets,game.currentNight.seerTargetId,"Pilih pemain")}
-          </select>
-          ${game.currentNight.seerResult ? `<div class="action-result">${escapeHtml(game.currentNight.seerResult)}</div>` : ""}
+          <p>Pawang tiada atau telah tersingkir.</p>
         </article>
       `;
 
@@ -1920,32 +1906,43 @@
           <select id="toyolTargetSelect" ${nightDisabled || !toyol || game.toyolUses>=2 ? "disabled" : ""}>
             ${optionList(toyolTargets,game.currentNight.toyolTargetId,"Tidak guna kuasa")}
           </select>
-          <div class="field-help">Toyol dan sasaran akan bertukar watak selepas malam diselesaikan.</div>
+          <div class="field-help">Toyol akan menjadi watak sasaran. Sasaran KEKAL dengan watak asal mereka — cuma watak Toyol yang hilang.</div>
         </article>
       `;
 
-      wrap.innerHTML = wolfCard+nurseCard+seerCard+toyolCard;
+      wrap.innerHTML = wolfCard+nurseCards+seerCards+toyolCard;
 
-      const bindings = [
-        ["wolfTargetSelect","wolfTargetId"],
-        ["protectedSelect","protectedId"],
-        ["seerTargetSelect","seerTargetId"],
-        ["toyolTargetSelect","toyolTargetId"]
-      ];
-      bindings.forEach(([id,key])=>{
-        const el = $(id);
-        if(el) el.addEventListener("change",async ()=>{
-          game.currentNight[key] = el.value;
-          if(key === "seerTargetId"){
-            game.currentNight.seerResult = "";
-            const target = getPlayerObj(el.value);
-            if(target){
-              const result = (target.role === "alpha" || !isWolfRole(target.role)) ? "Orang Kampung" : "Harimau Jadian";
-              game.currentNight.seerResult = `Keputusan Pawang untuk ${target.name}: ${result}`;
-            }
-          }
+      const wolfEl = $("wolfTargetSelect");
+      if(wolfEl) wolfEl.addEventListener("change",async ()=>{
+        game.currentNight.wolfTargetId = wolfEl.value;
+        await gameDocRef().update({currentNight: game.currentNight});
+      });
+
+      const toyolEl = $("toyolTargetSelect");
+      if(toyolEl) toyolEl.addEventListener("change",async ()=>{
+        game.currentNight.toyolTargetId = toyolEl.value;
+        await gameDocRef().update({currentNight: game.currentNight});
+      });
+
+      document.querySelectorAll("[data-nurse-id]").forEach(el=>{
+        el.addEventListener("change",async ()=>{
+          game.currentNight.protections[el.dataset.nurseId] = el.value;
           await gameDocRef().update({currentNight: game.currentNight});
-          if(key === "seerTargetId") renderNightActions();
+        });
+      });
+
+      document.querySelectorAll("[data-seer-id]").forEach(el=>{
+        el.addEventListener("change",async ()=>{
+          const seerId = el.dataset.seerId;
+          const target = getPlayerObj(el.value);
+          let result = "";
+          if(target){
+            const label = (target.role === "alpha" || !isWolfRole(target.role)) ? "Orang Kampung" : "Harimau Jadian";
+            result = `Keputusan Pawang untuk ${target.name}: ${label}`;
+          }
+          game.currentNight.seerChecks[seerId] = {targetId: el.value, result};
+          await gameDocRef().update({currentNight: game.currentNight});
+          renderNightActions();
         });
       });
     }
@@ -1955,7 +1952,9 @@
 
       const actions = game.currentNight;
       const wolfTarget = getPlayerObj(actions.wolfTargetId);
-      const protectedPlayer = getPlayerObj(actions.protectedId);
+      const protections = actions.protections || {};
+      const protectedIds = new Set(Object.values(protections).filter(Boolean));
+      const wasProtected = !!(wolfTarget && protectedIds.has(wolfTarget.id));
       const toyol = getAlivePlayers().find(p => p.role === "toyol");
       const toyolTarget = getPlayerObj(actions.toyolTargetId);
 
@@ -1967,7 +1966,7 @@
         pushLog(`Malam ${game.round}: Tok Dalang meneruskan permainan tanpa kejadian malam.`);
       }else{
         if(wolfTarget && wolfTarget.alive){
-          if(protectedPlayer && protectedPlayer.id === wolfTarget.id){
+          if(wasProtected){
             pushLog(`Malam ${game.round}: ${wolfTarget.name} diserang tetapi diselamatkan oleh Nurse.`);
           }else{
             playerUpdates[wolfTarget.id] = {alive:false, eliminatedBy:"night"};
@@ -1977,21 +1976,24 @@
           pushLog(`Malam ${game.round}: Kumpulan Harimau tidak memilih mangsa.`);
         }
 
-        if(actions.seerTargetId && actions.seerResult){
-          pushLog(`Malam ${game.round}: ${actions.seerResult}.`);
-        }
+        Object.values(actions.seerChecks || {}).forEach(check=>{
+          if(check?.targetId && check.result) pushLog(`Malam ${game.round}: ${check.result}.`);
+        });
 
         if(toyol && toyolTarget && toyolTarget.alive && game.toyolUses < 2){
           playerUpdates[toyol.id] = {...(playerUpdates[toyol.id]||{}), role: toyolTarget.role};
-          playerUpdates[toyolTarget.id] = {...(playerUpdates[toyolTarget.id]||{}), role: toyol.role};
-          pushLog(`Malam ${game.round}: Toyol menukar watak antara ${toyol.name} dan ${toyolTarget.name}. Penggunaan ${game.toyolUses+1}/2.`);
+          pushLog(`Malam ${game.round}: Toyol mencuri watak ${toyolTarget.name} (${roleLabel(toyolTarget.role)}). ${toyol.name} kini menjadi ${roleLabel(toyolTarget.role)}; ${toyolTarget.name} kekal dengan watak asalnya. Penggunaan ${game.toyolUses+1}/2.`);
         }
       }
 
+      const nursesNow = getAlivePlayers().filter(p => p.role === "doctor");
+      const newPreviousProtections = {};
+      nursesNow.forEach(nurse => { newPreviousProtections[nurse.id] = protections[nurse.id] || null; });
+
       const gamePatch = {
         logs,
-        lastMorningScript: buildMorningScript(wolfTarget,protectedPlayer,skip),
-        previousProtectedId: actions.protectedId || null,
+        lastMorningScript: buildMorningScript(wolfTarget,wasProtected,skip),
+        previousProtections: newPreviousProtections,
         nightResolved: true,
         phase: "day",
         voteResolved: false
@@ -2013,24 +2015,24 @@
       switchTab("voteTab");
       showResultModal(
         `Pagi Pusingan ${game.round}`,
-        buildMorningAnnouncement(wolfTarget,protectedPlayer,skip)
+        buildMorningAnnouncement(wolfTarget,wasProtected,skip)
       );
     }
 
-    function buildMorningScript(wolfTarget,protectedPlayer,skip){
+    function buildMorningScript(wolfTarget,wasProtected,skip){
       if(skip) return "Selamat pagi, penduduk kampung. Malam tadi berlalu tanpa sebarang kejadian.";
       if(!wolfTarget) return "Selamat pagi, penduduk kampung. Kumpulan Harimau tidak memilih sebarang mangsa malam tadi.";
-      if(protectedPlayer && protectedPlayer.id === wolfTarget.id){
+      if(wasProtected){
         return "Selamat pagi, penduduk kampung. Serangan berlaku malam tadi, tetapi mangsa berjaya diselamatkan dan tiada penduduk yang terkorban.";
       }
       const roleText = game.revealDeadRole ? ` Wataknya ialah ${roleLabel(wolfTarget.role)}.` : "";
       return `Selamat pagi, penduduk kampung. Malam tadi, ${wolfTarget.name} telah menjadi mangsa Harimau Jadian.${roleText}`;
     }
 
-    function buildMorningAnnouncement(wolfTarget,protectedPlayer,skip){
+    function buildMorningAnnouncement(wolfTarget,wasProtected,skip){
       if(skip) return `<div class="notice info">Pagi telah tiba. Tiada kejadian dilaporkan malam tadi.</div>`;
       if(!wolfTarget) return `<div class="notice info">Pagi telah tiba. Tiada mangsa dipilih oleh kumpulan Harimau.</div>`;
-      if(protectedPlayer && protectedPlayer.id === wolfTarget.id){
+      if(wasProtected){
         return `<div class="notice success">Pagi telah tiba. Berlaku serangan malam tadi, tetapi tiada penduduk yang terkorban.</div>`;
       }
       const roleText = game.revealDeadRole ? ` Wataknya ialah <strong>${escapeHtml(roleLabel(wolfTarget.role))}</strong>.` : "";
@@ -2184,7 +2186,7 @@
         phase: "night",
         nightResolved: false,
         voteResolved: false,
-        currentNight: {wolfTargetId:"",protectedId:"",seerTargetId:"",seerResult:"",toyolTargetId:""},
+        currentNight: {wolfTargetId:"",toyolTargetId:"",protections:{},seerChecks:{}},
         lastMorningScript: "",
         lastVoteScript: "",
         logs: [{id:cryptoId(),at:new Date().toISOString(),round:game.round+1,phase:"night",type:"info",message:`Pusingan ${game.round+1} bermula.`}, ...(game.logs||[])]
