@@ -654,6 +654,7 @@
 
         <section class="tab-panel" id="voteTab">
           <div id="voteLockedNotice" class="notice info hidden">Selesaikan fasa malam terlebih dahulu.</div>
+          <div id="voteScriptFlow"></div>
           <div class="card">
             <div class="section-title">
               <div>
@@ -1601,32 +1602,24 @@
       return "Permainan telah tamat. Terima kasih kepada semua pemain kerana memberikan kerjasama.";
     }
 
-    function getCurrentModeratorScript(){
-      const moderatorName = game.moderatorName || "Tok Dalang";
-      if(game.gameWinner){
-        const scammerExtra = game.scammerWinners?.length && game.gameWinner !== "scammer"
-          ? `Pemenang individu Scammer ialah ${game.scammerWinners.map(id => getPlayerObj(id)?.name).filter(Boolean).join(", ")}.`
-          : "";
-        return `${getWinnerClosingScript()}\n${scammerExtra}\nTerima kasih semua. Moderator untuk sesi ini ialah ${moderatorName}.`;
-      }
+    function getNightScriptLines(){
+      return [
+        `Malam pusingan ${game.round} bermula. Semua pemain, sila tutup mata dan jangan bercakap.`,
+        "Harimau Jadian dan Ketua Harimau Jadian, sila buka mata. Pilih seorang mangsa secara senyap.",
+        "Harimau Jadian, sila tutup mata.",
+        "Nurse, sila buka mata. Pilih seorang pemain untuk dilindungi malam ini.",
+        "Nurse, sila tutup mata.",
+        "Pawang, sila buka mata. Pilih seorang pemain untuk diperiksa.",
+        "Pawang, sila tutup mata.",
+        game.toyolUses < 2
+          ? `Toyol, sila buka mata. Anda boleh memilih seorang pemain untuk dicuri wataknya. Baki kuasa: ${2-game.toyolUses} kali.`
+          : "Kuasa Toyol telah habis dan tidak akan dipanggil lagi.",
+        "Toyol, sila tutup mata.",
+        "Malam telah berakhir. Semua pemain, sila buka mata."
+      ];
+    }
 
-      if(game.phase === "night"){
-        return [
-          `Malam pusingan ${game.round} bermula. Semua pemain, sila tutup mata dan jangan bercakap.`,
-          "Harimau Jadian dan Ketua Harimau Jadian, sila buka mata. Pilih seorang mangsa secara senyap.",
-          "Harimau Jadian, sila tutup mata.",
-          "Nurse, sila buka mata. Pilih seorang pemain untuk dilindungi malam ini.",
-          "Nurse, sila tutup mata.",
-          "Pawang, sila buka mata. Pilih seorang pemain untuk diperiksa.",
-          "Pawang, sila tutup mata.",
-          game.toyolUses < 2
-            ? `Toyol, sila buka mata. Anda boleh memilih seorang pemain untuk dicuri wataknya. Baki kuasa: ${2-game.toyolUses} kali.`
-            : "Kuasa Toyol telah habis dan tidak akan dipanggil lagi.",
-          "Toyol, sila tutup mata.",
-          "Malam telah berakhir. Semua pemain, sila buka mata."
-        ].join("\n");
-      }
-
+    function getVoteScriptLines(){
       const morning = game.lastMorningScript ||
         `Selamat pagi, penduduk kampung. Malam pusingan ${game.round} telah berakhir.`;
       if(!game.voteResolved){
@@ -1635,12 +1628,24 @@
           "Sekarang anda diberikan masa untuk berbincang. Perhatikan cerita yang bercanggah dan tentukan siapa yang mencurigakan.",
           "Selepas perbincangan, setiap pemain mesti mengundi seorang calon. Undian Penghulu Kampung bernilai 2 mata.",
           "Pemain tidak dibenarkan mengundi dirinya sendiri. Sila mulakan undian."
-        ].join("\n");
+        ];
       }
       return [
         game.lastVoteScript || "Keputusan undian telah direkodkan.",
         "Jika permainan belum tamat, semua pemain bersedia untuk memasuki malam seterusnya."
-      ].join("\n");
+      ];
+    }
+
+    function getCurrentModeratorScript(){
+      const moderatorName = game.moderatorName || "Tok Dalang";
+      if(game.gameWinner){
+        const scammerExtra = game.scammerWinners?.length && game.gameWinner !== "scammer"
+          ? `Pemenang individu Scammer ialah ${game.scammerWinners.map(id => getPlayerObj(id)?.name).filter(Boolean).join(", ")}.`
+          : "";
+        return `${getWinnerClosingScript()}\n${scammerExtra}\nTerima kasih semua. Moderator untuk sesi ini ialah ${moderatorName}.`;
+      }
+      if(game.phase === "night") return getNightScriptLines().join("\n");
+      return getVoteScriptLines().join("\n");
     }
 
     function getFullModeratorScriptSections(){
@@ -1828,6 +1833,7 @@
 
     function renderNightActions(){
       const wrap = $("nightActions");
+      wrap.style.gridTemplateColumns = "1fr";
       const alive = getAlivePlayers();
       const wolves = alive.filter(p => isWolfRole(p.role));
       const wolfTargets = alive.filter(p => !isWolfRole(p.role));
@@ -1910,7 +1916,24 @@
         </article>
       `;
 
-      wrap.innerHTML = wolfCard+nurseCards+seerCards+toyolCard;
+      const lines = getNightScriptLines();
+      const scriptBox = text => `<div class="script-box" style="margin:12px 0"><div class="script-line">${escapeHtml(text)}</div></div>`;
+
+      wrap.innerHTML =
+        scriptBox(lines[0]) +
+        scriptBox(lines[1]) +
+        wolfCard +
+        scriptBox(lines[2]) +
+        scriptBox(lines[3]) +
+        nurseCards +
+        scriptBox(lines[4]) +
+        scriptBox(lines[5]) +
+        seerCards +
+        scriptBox(lines[6]) +
+        scriptBox(lines[7]) +
+        toyolCard +
+        scriptBox(lines[8]) +
+        scriptBox(lines[9]);
 
       const wolfEl = $("wolfTargetSelect");
       if(wolfEl) wolfEl.addEventListener("change",async ()=>{
@@ -2045,6 +2068,13 @@
       $("voteLockedNotice").classList.toggle("hidden", !locked);
       $("tallyVotesBtn").disabled = locked;
       $("clearVotesBtn").disabled = locked;
+
+      if(game.phase === "day"){
+        const scriptBox = text => `<div class="script-box" style="margin-bottom:12px"><div class="script-line">${escapeHtml(text)}</div></div>`;
+        $("voteScriptFlow").innerHTML = getVoteScriptLines().map(scriptBox).join("");
+      }else{
+        $("voteScriptFlow").innerHTML = "";
+      }
 
       $("voteList").innerHTML = alive.map(voter => {
         const targets = alive.filter(p => p.id !== voter.id);
