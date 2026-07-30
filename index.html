@@ -856,7 +856,7 @@
 
     const PERSONAS = [
       {name:"Sombong", description:"Anda rasa diri paling bijak dan paling betul dalam apa jua situasi. Pandang rendah pada pendapat orang lain.", example:"“Saya dah agak dari awal lagi. Kamu semua ni memang tak pandai baca situasi.”"},
-      {name:"Pendatang Asing", description:"Berlakon seperti baru berpindah ke kampung ini dan kurang faham selokoh atau adat tempatan. Sering tersalah faham perbualan.", example:"“Maaf, saya kurang faham. Di negara saya, kalau macam ni bukan salah dia punya.”"},
+      {name:"Pendatang Asing", description:"Berlakon seperti baru berpindah ke kampung ini dan kurang faham selokoh atau adat tempatan. Sering tersalah faham perbualan.", example:"“Ini kampung saya sudah cukup paham ini orang.”"},
       {name:"Seorang Kelantan", description:"Bercakap dengan loghat Kelantan sepanjang perbincangan — tukar 'saya' jadi 'ambo/saye', 'awak' jadi 'demo', dan gaya sebutan khas Kelantan.", example:"“Ambo tak caye la demo ni. Cakap betul-betul sikit, jange lawok.”"},
       {name:"Bimbo", description:"Berlagak lurus, kurang perasan dengan hal-hal serius dan sering tertanya soalan yang tidak berkaitan dengan topik.", example:"“Eh sorry, tadi cakap pasal Harimau ke? Saya baru perasan warna baju awak comel.”"},
       {name:"Mabuk", description:"Berlakon seperti separuh mabuk — bercakap sedikit celaru, ketawa sendiri dan kadang hilang fokus perbualan.", example:"“Eh... korang cakap pasal apa tadi? Owh Harimau. Haha, saya... saya okay je ni.”"},
@@ -869,7 +869,7 @@
       {name:"Jujur", description:"Sentiasa cakap benar tentang apa yang difikirkan, walaupun ia menyakitkan hati atau menimbulkan syak.", example:"“Terus terang, saya memang syak awak dari mula lagi. Saya tak nak berpura-pura.”"},
       {name:"Pemalu", description:"Bercakap perlahan, kurang yakin dan elak menjadi pusat perhatian semasa perbincangan.", example:"“Um... saya rasa... entahlah, mungkin dia. Tapi saya tak pasti sangat.”"},
       {name:"Kaki Viral", description:"Berlagak seperti sedang dirakam untuk media sosial. Suka buat gaya dramatik dan sebut-sebut 'content' atau 'viral'.", example:"“Wah moment ni power gila, boleh jadi content ni. Followers saya confirm suka drama ni!”"},
-      {name:"Jenis Seorang Menyanyi", description:"Suka menjawab atau menyampuk dengan gaya bernyanyi atau berlagu-lagu, walaupun dalam situasi serius.", example:"“~ Sayaaa rasa dia Harimauuu~ jangan tanya kenapa~ perasaan sahaja~ ~”"},
+      {name:"Jenis Seorang Menyanyi", description:"Suka menjawab atau menyampuk dengan gaya bernyanyi atau berlagu-lagu, walaupun dalam situasi serius.", example:"“Tarik sis semongko~”\n“Eh eh sekedung kading pak dungding, dungpak dungking eh eh~”\n“Jalan-jalan dengan sepatu rodaku. Kiri, kanan, ikuti irama lagu~”"},
       {name:"Pak Ustaz/Ustazah", description:"Bercakap dengan gaya bernasihat dan penuh petua, sering mengaitkan situasi dengan pengajaran moral.", example:"“Ingatlah saudara-saudara, dalam hidup ni jangan cepat menuduh tanpa usul periksa.”"},
       {name:"Pondan", description:"Berlakon dengan gaya bercakap yang lebih dramatik, manja dan flamboyan berbanding biasa — banyak gaya tangan dan nada suara yang melambung.", example:"“Aiyoo jangan la macam tu kat akak, akak tak buat apa pun malam tadi!”"},
       {name:"Bisu", description:"Tidak bercakap langsung sepanjang perbincangan siang — hanya boleh guna gerak tangan, muka atau tulisan untuk sampaikan maksud.", example:"(Hanya menggunakan isyarat tangan menunjuk ke arah pemain yang disyaki, tanpa sepatah kata.)"},
@@ -956,6 +956,10 @@
       }[ch]));
     }
 
+    function multilineHtml(value){
+      return String(value ?? "").split("\n").map(escapeHtml).join("<br>");
+    }
+
     function shuffle(items){
       const arr = [...items];
       for(let i=arr.length-1;i>0;i--){
@@ -1033,7 +1037,7 @@
       if(!persona) return;
       $("personaInfoTitle").textContent = `🎭 ${persona.name}`;
       $("personaInfoDescription").textContent = persona.description;
-      $("personaInfoExample").textContent = persona.example;
+      $("personaInfoExample").innerHTML = multilineHtml(persona.example);
       $("personaInfoModal").classList.add("open");
       $("personaInfoModal").setAttribute("aria-hidden","false");
     }
@@ -1438,7 +1442,7 @@
       if(persona && roleRevealed){
         $("rolePersonaName").textContent = persona.name;
         $("rolePersonaDescription").textContent = persona.description;
-        $("rolePersonaExample").textContent = persona.example;
+        $("rolePersonaExample").innerHTML = multilineHtml(persona.example);
         $("rolePersonaCard").classList.remove("hidden");
       }else{
         $("rolePersonaCard").classList.add("hidden");
