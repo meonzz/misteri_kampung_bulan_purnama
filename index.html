@@ -426,6 +426,14 @@
                 <div class="field-help">Setiap pemain (kecuali Tok Dalang) menerima satu watak/gaya perbualan rawak (dengan contoh ayat) untuk buatkan perbincangan lebih menarik.</div>
               </div>
             </div>
+            <div class="spacer"></div>
+            <div class="check-row">
+              <input type="checkbox" id="noKillFirstNight" />
+              <div>
+                <strong>Tiada Pembunuhan Pada Malam Pertama</strong>
+                <div class="field-help">Jika ditanda, Harimau Jadian tetap buka mata malam pertama tetapi TIDAK dibenarkan menyerang sesiapa. Serangan bermula malam kedua.</div>
+              </div>
+            </div>
           </div>
 
           <div class="card">
@@ -685,6 +693,15 @@
         </section>
 
         <section class="tab-panel" id="settingsTab">
+          <div class="card">
+            <h3>Kawalan Fasa</h3>
+            <p class="muted">Fasa semasa: <strong id="currentPhaseLabel"></strong>. Guna ini untuk berpatah balik jika tersilap teruskan fasa.</p>
+            <div class="button-row">
+              <button class="btn btn-secondary" id="gotoNightPhaseBtn">🌙 Tukar ke Fasa Malam</button>
+              <button class="btn btn-secondary" id="gotoDayPhaseBtn">☀️ Tukar ke Fasa Siang</button>
+            </div>
+            <div class="field-help" style="margin-top:10px">Menukar fasa tidak membatalkan kesan yang sudah berlaku (contoh: pemain yang sudah tersingkir kekal tersingkir).</div>
+          </div>
           <div class="card">
             <h3>Mulakan Pusingan Baru</h3>
             <p class="muted">Guna kod/link bilik yang sama dan senarai nama pemain sedia ada. Anda boleh tambah atau buang nama sebelum watak diagihkan semula.</p>
@@ -1172,6 +1189,7 @@
       $("revealDeadRole").checked = !!game.revealDeadRole;
       $("continueAfterScammer").checked = !!game.continueAfterScammer;
       $("personaEnabled").checked = orderedPlayers().some(p => !!p.persona);
+      $("noKillFirstNight").checked = !!game.noKillFirstNight;
       setRoleCounts(tallyCurrentCounts());
       validateSetup();
     }
@@ -1190,6 +1208,7 @@
         const revealDeadRole = $("revealDeadRole").checked;
         const continueAfterScammer = $("continueAfterScammer").checked;
         const personaEnabled = $("personaEnabled").checked;
+        const noKillFirstNight = $("noKillFirstNight").checked;
 
         currentUser = currentUser || await ensureSignedIn();
 
@@ -1223,7 +1242,7 @@
             moderatorName,
             moderatorUid: null,
             moderatorPlayerId: moderatorPlayer?.id || null,
-            revealDeadRole, continueAfterScammer,
+            revealDeadRole, continueAfterScammer, noKillFirstNight,
             round: 1,
             phase: "night",
             nightResolved: false,
@@ -1269,7 +1288,7 @@
             moderatorPlayerId: moderatorPlayer?.id || null,
             hostUid: currentUser.uid,
             createdAt: new Date().toISOString(),
-            revealDeadRole, continueAfterScammer,
+            revealDeadRole, continueAfterScammer, noKillFirstNight,
             round: 1,
             phase: "night",
             nightResolved: false,
@@ -1576,6 +1595,9 @@
       $("phaseSummary").textContent = game.gameWinner
         ? "Permainan telah tamat"
         : game.phase === "night" ? "Fasa Malam sedang berjalan" : "Fasa Siang dan Undian";
+      $("currentPhaseLabel").textContent = game.phase === "night" ? "Fasa Malam" : "Fasa Siang";
+      $("gotoNightPhaseBtn").disabled = game.phase === "night" && !game.nightResolved;
+      $("gotoDayPhaseBtn").disabled = game.phase === "day" && !game.voteResolved;
       renderWinnerArea();
       renderStatusList();
       renderModeratorScript();
@@ -1608,9 +1630,12 @@
     }
 
     function getNightScriptLines(){
+      const noKillTonight = game.round === 1 && game.noKillFirstNight;
       return [
         `Malam pusingan ${game.round} bermula. Semua pemain, sila tutup mata dan jangan bercakap.`,
-        "Harimau Jadian dan Ketua Harimau Jadian, sila buka mata. Pilih seorang mangsa secara senyap.",
+        noKillTonight
+          ? "Harimau Jadian dan Ketua Harimau Jadian, sila buka mata dan kenali sesama sendiri. TIADA serangan dibenarkan pada malam pertama."
+          : "Harimau Jadian dan Ketua Harimau Jadian, sila buka mata. Pilih seorang mangsa secara senyap.",
         "Harimau Jadian, sila tutup mata.",
         "Nurse, sila buka mata. Pilih seorang pemain untuk dilindungi malam ini.",
         "Nurse, sila tutup mata.",
@@ -1821,13 +1846,32 @@
                 ${player.persona ? `<button class="role-badge" style="margin-top:6px;border:0;cursor:pointer" data-persona-player="${player.id}">🎭 ${escapeHtml(player.persona.name)}</button>` : ""}
               </div>
             </div>
-            <span class="tag ${tagClass}">${tagText}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+              <span class="tag ${tagClass}">${tagText}</span>
+              ${player.claimedUid
+                ? `<button class="btn btn-ghost btn-sm" style="min-height:0;padding:4px 8px;font-size:11px" data-reset-player="${player.id}">↺ Reset Log Masuk</button>`
+                : `<span class="small muted">Belum log masuk</span>`}
+            </div>
           </div>
         `;
       }).join("");
       document.querySelectorAll("[data-persona-player]").forEach(btn=>{
         btn.addEventListener("click",()=>showPersonaInfo(getPlayerObj(btn.dataset.personaPlayer)?.persona));
       });
+      document.querySelectorAll("[data-reset-player]").forEach(btn=>{
+        btn.addEventListener("click",()=>resetPlayerClaim(btn.dataset.resetPlayer));
+      });
+    }
+
+    async function resetPlayerClaim(playerId){
+      const player = getPlayerObj(playerId);
+      if(!player) return;
+      const ok = confirm(`Reset log masuk untuk ${player.name}? Peranti lama akan hilang akses dan pemain perlu pilih nama semula untuk lihat watak.`);
+      if(!ok) return;
+      await Promise.all([
+        playerDocRef(playerId).update({claimedUid: null}),
+        gameDocRef().collection("publicPlayers").doc(playerId).update({claimed: false})
+      ]);
     }
 
     function optionList(players, selected="", placeholder="Pilih pemain"){
@@ -1855,14 +1899,19 @@
       if(!game.currentNight.seerChecks) game.currentNight.seerChecks = {};
       if(!game.previousProtections) game.previousProtections = {};
 
+      const noKillTonight = game.round === 1 && game.noKillFirstNight;
       const wolfCard = `
         <article class="action-card">
           <h3>🐺 Serangan Harimau</h3>
           <p>${wolves.length ? `Aktif: ${wolves.map(p=>escapeHtml(p.name)).join(", ")}` : "Tiada Harimau yang masih hidup."}</p>
-          <label>Sasaran malam</label>
-          <select id="wolfTargetSelect" ${nightDisabled || !wolves.length ? "disabled" : ""}>
-            ${optionList(wolfTargets,game.currentNight.wolfTargetId,"Pilih mangsa")}
-          </select>
+          ${noKillTonight
+            ? `<div class="notice info">Tiada serangan dibenarkan pada malam pertama (ikut tetapan permainan).</div>`
+            : `
+              <label>Sasaran malam</label>
+              <select id="wolfTargetSelect" ${nightDisabled || !wolves.length ? "disabled" : ""}>
+                ${optionList(wolfTargets,game.currentNight.wolfTargetId,"Pilih mangsa")}
+              </select>
+            `}
         </article>
       `;
 
@@ -1979,7 +2028,8 @@
       if(game.gameWinner || game.phase !== "night" || game.nightResolved) return;
 
       const actions = game.currentNight;
-      const wolfTarget = getPlayerObj(actions.wolfTargetId);
+      const noKillTonight = game.round === 1 && game.noKillFirstNight;
+      const wolfTarget = noKillTonight ? null : getPlayerObj(actions.wolfTargetId);
       const protections = actions.protections || {};
       const protectedIds = new Set(Object.values(protections).filter(Boolean));
       const wasProtected = !!(wolfTarget && protectedIds.has(wolfTarget.id));
@@ -2000,6 +2050,8 @@
             playerUpdates[wolfTarget.id] = {alive:false, eliminatedBy:"night"};
             pushLog(`Malam ${game.round}: ${wolfTarget.name} menjadi mangsa Harimau Jadian.`);
           }
+        }else if(noKillTonight){
+          pushLog(`Malam ${game.round}: Tiada serangan dibenarkan pada malam pertama (ikut tetapan permainan).`);
         }else{
           pushLog(`Malam ${game.round}: Kumpulan Harimau tidak memilih mangsa.`);
         }
@@ -2333,6 +2385,20 @@
       roleRevealed = false;
     }
 
+    async function setPhaseManually(newPhase){
+      if(!game || game.gameWinner) return;
+      const label = newPhase === "night" ? "Fasa Malam" : "Fasa Siang";
+      const ok = confirm(`Tukar terus ke ${label}? Ini TIDAK membatalkan kesan yang sudah berlaku (contoh: pemain yang sudah tersingkir kekal tersingkir).`);
+      if(!ok) return;
+      const patch = newPhase === "night"
+        ? {phase:"night", nightResolved:false}
+        : {phase:"day", nightResolved:true, voteResolved:false};
+      Object.assign(game, patch);
+      await gameDocRef().update(patch);
+      renderModerator();
+      switchTab(newPhase === "night" ? "nightTab" : "voteTab");
+    }
+
     async function resetGame(){
       const ok = confirm("Padam permainan ini untuk SEMUA peserta dan kembali ke halaman utama?");
       if(!ok) return;
@@ -2465,6 +2531,8 @@
         renderPinPad();
       });
       $("resetGameBtn").addEventListener("click",resetGame);
+      $("gotoNightPhaseBtn").addEventListener("click",()=>setPhaseManually("night"));
+      $("gotoDayPhaseBtn").addEventListener("click",()=>setPhaseManually("day"));
       $("newRoundSameRoomBtn").addEventListener("click",startReuseSetup);
       $("winnerArea").addEventListener("click",e=>{
         if(e.target.closest("#newRoundFromWinnerBtn")) startReuseSetup();
