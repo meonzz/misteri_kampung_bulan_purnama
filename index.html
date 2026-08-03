@@ -674,6 +674,7 @@
             <div class="button-row" style="margin-top:14px">
               <button class="btn btn-primary" id="tallyVotesBtn">Kira Undian</button>
               <button class="btn btn-secondary" id="clearVotesBtn">Kosongkan Undian</button>
+              <button class="btn btn-secondary" id="skipVoteBtn">Skip Undian</button>
             </div>
             <div id="voteResult"></div>
           </div>
@@ -2125,6 +2126,7 @@
       $("voteLockedNotice").classList.toggle("hidden", !locked);
       $("tallyVotesBtn").disabled = locked;
       $("clearVotesBtn").disabled = locked;
+      $("skipVoteBtn").disabled = locked;
 
       if(game.phase === "day"){
         const scriptBox = text => `<div class="script-box" style="margin-bottom:12px"><div class="script-line">${escapeHtml(text)}</div></div>`;
@@ -2264,6 +2266,29 @@
     function clearVotes(){
       document.querySelectorAll("[data-voter]").forEach(select => select.value="");
       $("voteResult").innerHTML = "";
+    }
+
+    async function skipVote(){
+      if(game.gameWinner || game.phase !== "day" || game.voteResolved) return;
+      const ok = confirm("Langkau undian hari ini? Tiada pemain akan disingkirkan melalui undian pusingan ini.");
+      if(!ok) return;
+      const lastVoteScript = "Tiada undian dijalankan hari ini. Semua pemain yang masih hidup kekal dalam permainan.";
+      const logs = [{id:cryptoId(),at:new Date().toISOString(),round:game.round,phase:game.phase,type:"info",message:`Siang ${game.round}: Undian dilangkau oleh Tok Dalang.`}, ...(game.logs||[])];
+      const gamePatch = {voteResolved:true, lastVoteScript, logs};
+      Object.assign(game, gamePatch);
+      await gameDocRef().update(gamePatch);
+      renderModerator();
+      showResultModal("Undian Dilangkau", `
+        <div class="notice info">Tiada undian dijalankan hari ini. Semua pemain yang masih hidup kekal dalam permainan.</div>
+        ${!game.gameWinner ? `<button class="btn btn-primary btn-block" id="nextRoundModalBtn">Mulakan Pusingan Seterusnya</button>` : ""}
+      `);
+      setTimeout(()=>{
+        const btn = $("nextRoundModalBtn");
+        if(btn) btn.addEventListener("click",()=>{
+          closeResultModal();
+          startNextRound();
+        });
+      },0);
     }
 
     async function startNextRound(){
@@ -2510,6 +2535,7 @@
       $("skipNightBtn").addEventListener("click",()=>resolveNight(true));
       $("tallyVotesBtn").addEventListener("click",tallyVotes);
       $("clearVotesBtn").addEventListener("click",clearVotes);
+      $("skipVoteBtn").addEventListener("click",skipVote);
       $("exportLogBtn").addEventListener("click",exportLog);
       $("copyCurrentScriptBtn").addEventListener("click",e=>{
         copyTextToClipboard(e.currentTarget.dataset.copyText || "",e.currentTarget);
