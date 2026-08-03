@@ -696,12 +696,16 @@
         <section class="tab-panel" id="settingsTab">
           <div class="card">
             <h3>Kawalan Fasa</h3>
-            <p class="muted">Fasa semasa: <strong id="currentPhaseLabel"></strong>. Guna ini untuk berpatah balik jika tersilap teruskan fasa.</p>
+            <p class="muted">Fasa semasa: <strong id="currentPhaseLabel"></strong> · Pusingan semasa: <strong id="currentRoundLabel"></strong>. Guna ini untuk berpatah balik jika tersilap teruskan fasa atau pusingan.</p>
+            <div class="field">
+              <label for="phaseRoundInput">Pusingan yang ditukar</label>
+              <input type="number" id="phaseRoundInput" min="1" inputmode="numeric" />
+            </div>
             <div class="button-row">
               <button class="btn btn-secondary" id="gotoNightPhaseBtn">🌙 Tukar ke Fasa Malam</button>
               <button class="btn btn-secondary" id="gotoDayPhaseBtn">☀️ Tukar ke Fasa Siang</button>
             </div>
-            <div class="field-help" style="margin-top:10px">Menukar fasa tidak membatalkan kesan yang sudah berlaku (contoh: pemain yang sudah tersingkir kekal tersingkir).</div>
+            <div class="field-help" style="margin-top:10px">Menukar fasa/pusingan tidak membatalkan kesan yang sudah berlaku (contoh: pemain yang sudah tersingkir kekal tersingkir).</div>
           </div>
           <div class="card">
             <h3>Mulakan Pusingan Baru</h3>
@@ -1597,8 +1601,8 @@
         ? "Permainan telah tamat"
         : game.phase === "night" ? "Fasa Malam sedang berjalan" : "Fasa Siang dan Undian";
       $("currentPhaseLabel").textContent = game.phase === "night" ? "Fasa Malam" : "Fasa Siang";
-      $("gotoNightPhaseBtn").disabled = game.phase === "night" && !game.nightResolved;
-      $("gotoDayPhaseBtn").disabled = game.phase === "day" && !game.voteResolved;
+      $("currentRoundLabel").textContent = game.round;
+      if(document.activeElement !== $("phaseRoundInput")) $("phaseRoundInput").value = game.round;
       renderWinnerArea();
       renderStatusList();
       renderModeratorScript();
@@ -2412,12 +2416,13 @@
 
     async function setPhaseManually(newPhase){
       if(!game || game.gameWinner) return;
+      const round = Math.max(1, Number.parseInt($("phaseRoundInput").value, 10) || game.round);
       const label = newPhase === "night" ? "Fasa Malam" : "Fasa Siang";
-      const ok = confirm(`Tukar terus ke ${label}? Ini TIDAK membatalkan kesan yang sudah berlaku (contoh: pemain yang sudah tersingkir kekal tersingkir).`);
+      const ok = confirm(`Tukar ke ${label} Pusingan ${round}? Ini TIDAK membatalkan kesan yang sudah berlaku (contoh: pemain yang sudah tersingkir kekal tersingkir).`);
       if(!ok) return;
       const patch = newPhase === "night"
-        ? {phase:"night", nightResolved:false}
-        : {phase:"day", nightResolved:true, voteResolved:false};
+        ? {phase:"night", round, nightResolved:false}
+        : {phase:"day", round, nightResolved:true, voteResolved:false};
       Object.assign(game, patch);
       await gameDocRef().update(patch);
       renderModerator();
